@@ -10,7 +10,7 @@ interface InputFieldProps {
 
 const page = () => {
   const [files, setFiles] = useState<{ [key: string]: string }>({
-    Untiled: "",
+    'Untiled.txt': "",
   });
   const [currentFile, setCurrentFile] = useState("Untiled");
   const [newFileName, setNewFileName] = useState("");
@@ -50,17 +50,17 @@ const page = () => {
           />
           <div className="mt-4 w-full flex flex-col items-center">
             {Object.keys(files).map((file) => (
-              <button
+              <div
                 key={file}
                 onClick={() => setCurrentFile(file)}
-                className={`w-[90%] my-1 p-1 rounded ${
+                className={`w-[100%] flex justify-end p-1  ${
                   file === currentFile
-                    ? "bg-gray-700 text-white font-semibold"
-                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    ? " backdrop-blur-md bg-blue-500/20 text-white  font-semibold cursor-pointer"
+                    : "  text-gray-300 hover:bg-gray-700 cursor-pointer"
                 }`}
               >
-                {file}
-              </button>
+                <div className="mr-10 font-normal font-sans text-[13px]">{file}</div>
+              </div>
             ))}
           </div>
         </div>
