@@ -1,6 +1,11 @@
 import React from "react";
 
-const InputField = () => {
+interface InputFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
   return (
     <div
       className=" w-full border-r border-l"
@@ -10,6 +15,9 @@ const InputField = () => {
         className="w-full h-full p-10 outline-none resize-none "
         name="document"
         id="text-area"
+
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
       ></textarea>
     </div>
   );
