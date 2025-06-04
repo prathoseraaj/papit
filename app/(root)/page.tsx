@@ -1,3 +1,4 @@
+import InputField from "@/components/InputField";
 import React from "react";
 
 const page = () => {
@@ -10,8 +11,8 @@ const page = () => {
       <div className="w-[15%] flex flex-col items-center  " >
         <input type="text" className="w-[90%] mt-5 p-1 border rounded-[10px] " placeholder="name of the file" />
       </div>
-      <div className="flex  w-[65%] border-r border-l" style={{ background: '#131313', borderColor: '#252525' }}>
-        <textarea className="w-full p-10 outline-none resize-none " name="document" id="text-area"></textarea>
+      <div className=" flex w-[65%]">
+        <InputField/>
       </div>
       <div className="w-[20%]">
         <h1 className="m-5">Commit message</h1>
