@@ -76,9 +76,6 @@ const page = () => {
 
                   <div className="absolute left-full top-0 ml-2 w-32 bg-transparent border  border-gray-500 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-auto z-10">
                     <ul className="text-sm text-white">
-                      <li className="px-4 py-2 hover:bg-gray-800 cursor-pointer">
-                        Edit
-                      </li>
                       <li className="px-4 py-2 hover:bg-gray-800 cursor-pointer" onClick={(e)=>handleDeleteFile(file)}>
                         Delete 
                       </li>
