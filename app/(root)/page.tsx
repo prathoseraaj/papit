@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import Chatbot from "@/components/Chatbot";
 
 interface InputFieldProps {
   value: string;
@@ -90,7 +91,9 @@ const page = () => {
           <InputField value={files[currentFile]} onChange={handleInputChange} />
         </div>
         <div className="w-[20%]">
-          <h1 className="m-5">Commit message</h1>
+            <div>
+              <Chatbot/>
+            </div>
         </div>
       </div>
     </>
