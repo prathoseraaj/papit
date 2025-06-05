@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 interface InputFieldProps {
   value: string;
@@ -10,9 +11,9 @@ interface InputFieldProps {
 
 const page = () => {
   const [files, setFiles] = useState<{ [key: string]: string }>({
-    'Untiled.txt': "",
+    "Untiled.txt": "",
   });
-  const [currentFile, setCurrentFile] = useState("Untiled");
+  const [currentFile, setCurrentFile] = useState("Untiled.txt");
   const [newFileName, setNewFileName] = useState("");
 
   const handleAddFile = () => {
@@ -21,6 +22,14 @@ const page = () => {
     setFiles((prev) => ({ ...prev, [name]: " " }));
     setCurrentFile(name);
     setNewFileName("");
+  };
+
+  const handleDeleteFile = (name: string) => {
+    setFiles((prev) => {
+      const updatefiles = { ...prev };
+      delete updatefiles[name];
+      return updatefiles;
+    });
   };
 
   const handleInputChange = (text: string) => {
@@ -59,7 +68,23 @@ const page = () => {
                     : "  text-gray-300 hover:bg-gray-700 cursor-pointer"
                 }`}
               >
-                <div className="mr-10 font-normal font-sans text-[13px]">{file}</div>
+                <div className="mr-10 font-normal font-sans text-[13px]">
+                  {file}
+                </div>
+                <div className="relative inline-block group">
+                  <BsThreeDotsVertical className="text-sm mt-1 cursor-pointer pointer-events-auto" />
+
+                  <div className="absolute left-full top-0 ml-2 w-32 bg-transparent border  border-gray-500 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-auto z-10">
+                    <ul className="text-sm text-white">
+                      <li className="px-4 py-2 hover:bg-gray-800 cursor-pointer">
+                        Edit
+                      </li>
+                      <li className="px-4 py-2 hover:bg-gray-800 cursor-pointer" onClick={(e)=>handleDeleteFile(file)}>
+                        Delete 
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
