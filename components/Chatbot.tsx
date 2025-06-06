@@ -8,7 +8,7 @@ const Chatbot = () => {
         <Image src="/image.png" alt="gemini logo" height={25} width={25} />
       </div>
       <div className="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-1000">
-        <h1>Gemini</h1>
+        <h1>BroDoc</h1>
       </div>
     </div>
   );
