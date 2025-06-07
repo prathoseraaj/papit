@@ -8,7 +8,7 @@ interface InputFieldProps {
 const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
   return (
     <div
-      className=" w-full border-r border-l"
+      className=" w-full h-full border-r border-l"
       style={{ background: "#131313", borderColor: "#252525" }}
     >
       <textarea

@@ -41,14 +41,15 @@ const page = () => {
   };
 
   return (
-    <>
+    <div className="h-screen flex flex-col">
       <div
-        className="flex max-h-[100vh] w-full p-2 pl-5 border-b"
+        className="h-[50px] w-full border-b p-2 pl-5"
         style={{ borderColor: "#252525" }}
       >
-        <h1 className="text-[25px] font-outfit ">Vind</h1>
+        <h1 className="text-[25px] font-outfit">Vind</h1>
       </div>
-      <div className="flex flex-row h-[90vh]">
+
+      <div className="flex flex-row flex-1 overflow-hidden">
         <div className="w-[15%] flex flex-col items-center  ">
           <input
             type="text"
@@ -77,8 +78,11 @@ const page = () => {
 
                   <div className="absolute left-full top-0 ml-2 w-32 bg-transparent border  border-gray-500 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-auto z-10">
                     <ul className="text-sm text-white">
-                      <li className="px-4 py-2 hover:bg-gray-800 cursor-pointer" onClick={(e)=>handleDeleteFile(file)}>
-                        Delete 
+                      <li
+                        className="px-4 py-2 hover:bg-gray-800 cursor-pointer"
+                        onClick={(e) => handleDeleteFile(file)}
+                      >
+                        Delete
                       </li>
                     </ul>
                   </div>
@@ -87,16 +91,16 @@ const page = () => {
             ))}
           </div>
         </div>
-        <div className=" flex w-[65%]">
+        <div className=" flex h-full w-[65%]">
           <InputField value={files[currentFile]} onChange={handleInputChange} />
         </div>
         <div className="w-[20%]">
-            <div>
-              <Chatbot/>
-            </div>
+          <div>
+            <Chatbot />
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
