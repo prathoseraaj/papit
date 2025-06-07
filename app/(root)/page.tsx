@@ -5,12 +5,7 @@ import InputField from "@/components/InputField";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import Chatbot from "@/components/Chatbot";
 
-interface InputFieldProps {
-  value: string;
-  onChange: (text: string) => void;
-}
-
-const page = () => {
+const Page = () => {
   const [files, setFiles] = useState<{ [key: string]: string }>({
     "Untiled.txt": "",
   });
@@ -80,7 +75,7 @@ const page = () => {
                     <ul className="text-sm text-white">
                       <li
                         className="px-4 py-2 hover:bg-gray-800 cursor-pointer"
-                        onClick={(e) => handleDeleteFile(file)}
+                        onClick={() => handleDeleteFile(file)}
                       >
                         Delete
                       </li>
@@ -95,13 +90,11 @@ const page = () => {
           <InputField value={files[currentFile]} onChange={handleInputChange} />
         </div>
         <div className="w-[20%]">
-          <div>
-            <Chatbot />
-          </div>
+          <Chatbot />
         </div>
       </div>
     </div>
   );
 };
 
-export default page;
+export default Page;
