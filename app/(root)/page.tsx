@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import Chatbot from "@/components/Chatbot";
+import CommitField from "@/components/CommitField";
 
 const Page = () => {
   const [files, setFiles] = useState<{ [key: string]: string }>({
@@ -32,6 +33,13 @@ const Page = () => {
     setFiles((prev) => ({
       ...prev,
       [currentFile]: text,
+    }));
+  };
+
+  const handleCommitSelect = (content: string) => {
+    setFiles((prev) => ({
+      ...prev,
+      [currentFile]: content,
     }));
   };
 
@@ -89,11 +97,14 @@ const Page = () => {
         <div className=" flex h-full w-[65%]">
           <InputField value={files[currentFile]} onChange={handleInputChange} />
         </div>
-        {/* ChatBot */}
-        {/* <div className="w-[20%]">
-          <Chatbot />
-        </div> */}
-        
+        {/* Commit Field */}
+        <div className="w-[20%] border-l" style={{ borderColor: "#252525" }}>
+          <CommitField 
+            currentContent={files[currentFile]} 
+            fileName={currentFile}
+            onCommitSelect={handleCommitSelect}
+          />
+        </div>
       </div>
     </div>
   );
