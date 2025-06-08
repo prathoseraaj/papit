@@ -42,7 +42,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ background: "#1e1e1e" }}>
+    <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="p-3 border-b flex items-center gap-2" style={{ borderColor: "#2d2d30" }}>
         <VscGitCommit className="text-orange-400" size={16} />
@@ -107,7 +107,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
                         {commit.message}
                       </div>
                       <div className="text-gray-400 text-xs mt-0.5">
-                        {commit.id} • {commit.timestamp}
+                         {commit.timestamp}
                       </div>
                       <div className="text-gray-500 text-xs mt-1">
                         {fileName}
