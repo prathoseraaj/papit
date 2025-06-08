@@ -104,7 +104,7 @@ const Page = () => {
             fileName={currentFile}
             onCommitSelect={handleCommitSelect}
           /> */}
-          <Chatbot/>
+{/*           <Chatbot/> */}
         </div>
       </div>
     </div>
