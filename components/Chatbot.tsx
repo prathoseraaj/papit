@@ -48,11 +48,11 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="flex flex-col h-[94vh] border-l border-[#252525] bg-[#0f0f0f]">
+    <div className="flex mt-3 flex-col h-[92vh] border-l border-[#252525] bg-[#0f0f0f]">
       {/* Header */}
-      <div className="flex items-center px-4 py-2 border-b border-[#252525]">
+      <div className="flex group items-center px-4 py-2 border-b border-[#252525]">
         <Image src="/image.png" alt="Gemini logo" height={25} width={25} />
-        <h1 className="ml-2 text-white text-sm font-semibold">BroDoc</h1>
+        <h1 className="ml-2 text-white text-sm opacity-1  font-semibold invisible group-hover:visible group-hover:opacity-100 group-hover:scale-100 transition duration-1000 ">BroDoc</h1>
       </div>
 
       {/* Message Area */}
