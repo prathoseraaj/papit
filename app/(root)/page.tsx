@@ -89,9 +89,11 @@ const Page = () => {
         <div className=" flex h-full w-[65%]">
           <InputField value={files[currentFile]} onChange={handleInputChange} />
         </div>
-        <div className="w-[20%]">
+        {/* ChatBot */}
+        {/* <div className="w-[20%]">
           <Chatbot />
-        </div>
+        </div> */}
+        
       </div>
     </div>
   );
