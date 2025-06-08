@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import Chatbot from "@/components/Chatbot";
+/* import Chatbot from "@/components/Chatbot"; */
 import CommitField from "@/components/CommitField";
 
 const Page = () => {
