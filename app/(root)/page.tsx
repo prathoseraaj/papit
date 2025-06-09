@@ -5,6 +5,9 @@ import InputField from "@/components/InputField";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import Chatbot from "@/components/Chatbot";
 import CommitField from "@/components/CommitField";
+import { VscGitCommit } from "react-icons/vsc";
+import Image from "next/image";
+
 
 const Page = () => {
   const [files, setFiles] = useState<{ [key: string]: string }>({
@@ -12,7 +15,7 @@ const Page = () => {
   });
   const [currentFile, setCurrentFile] = useState("Untiled.txt");
   const [newFileName, setNewFileName] = useState("");
-  const commitfield = true;
+  const [commitfield, setCommitfield] = useState(true);
 
   const handleAddFile = () => {
     const name = newFileName.trim();
@@ -109,6 +112,14 @@ const Page = () => {
           ) : (
             <Chatbot />
           )}
+        </div>
+      </div>
+      <div className="fixed bottom-4  z-50 ml-10 mb-5">
+        <div
+          className="rounded-full  bg-black shadow-[0_0_30px_5px_rgba(250,250,250,0.2)] w-10 h-10 flex justify-center items-center shadow-white-500 cursor-pointer"
+          onClick={() => setCommitfield(!commitfield)}
+        >
+          {commitfield ? <Image src="/image.png" alt="Gemini logo" height={25} width={25} /> : <VscGitCommit className="text-orange-400" size={16} />}
         </div>
       </div>
     </div>
