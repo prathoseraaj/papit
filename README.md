@@ -9,7 +9,7 @@ Vind is a web-based file editor application for content writters and content cre
 - **File Management**:  
   - Create, select, and delete text files.
   - Edit file contents in an intuitive editor panel.
-[![Next.js](https://img.shields.io/badge/next.js-15.0.0-black)](https://nextjs.org/)
+
 - **Git-like Commit System**:  
   - Commit your changes with custom messages.
   - View commit history for the current file.
