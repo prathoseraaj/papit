@@ -1,6 +1,6 @@
 # Vind
 
-[![Next.js](https://img.shields.io/badge/next.js-14.0.0-black)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/next.js-15.0.0-black)](https://nextjs.org/)
 
 Vind is a web-based file editor application for content writters and content creators featuring file management and a commit history panel. The project is **still under development**.
 
