@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import { BsThreeDotsVertical } from "react-icons/bs";
-/* import Chatbot from "@/components/Chatbot"; */
+import Chatbot from "@/components/Chatbot";
 import CommitField from "@/components/CommitField";
 
 const Page = () => {
@@ -12,6 +12,7 @@ const Page = () => {
   });
   const [currentFile, setCurrentFile] = useState("Untiled.txt");
   const [newFileName, setNewFileName] = useState("");
+  const commitfield = true;
 
   const handleAddFile = () => {
     const name = newFileName.trim();
@@ -99,12 +100,15 @@ const Page = () => {
         </div>
         {/* Commit Field */}
         <div className="w-[20%] border-l" style={{ borderColor: "#252525" }}>
-          <CommitField
-            currentContent={files[currentFile]}
-            fileName={currentFile}
-            onCommitSelect={handleCommitSelect}
-          />
-          {/* <Chatbot/> */}
+          {commitfield ? (
+            <CommitField
+              currentContent={files[currentFile]}
+              fileName={currentFile}
+              onCommitSelect={handleCommitSelect}
+            />
+          ) : (
+            <Chatbot />
+          )}
         </div>
       </div>
     </div>
