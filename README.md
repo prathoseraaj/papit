@@ -36,7 +36,7 @@ Vind does **not** use Node.js, Express, or Python for the backend. All deploymen
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/vind.git
+   git clone https://github.com/prathoseraaj/vind.git
    cd vind
    ```
 
