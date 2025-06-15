@@ -35,6 +35,7 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
             range.collapse(false);
             selection.removeAllRanges();
             selection.addRange(range);
+            console.log(error)
           }
         }
       }
