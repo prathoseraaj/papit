@@ -29,7 +29,7 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
             range.collapse(true);
             selection.removeAllRanges();
             selection.addRange(range);
-          } catch (e) {
+          } catch (error) {
             // Fallback: place cursor at end
             range.selectNodeContents(contentRef.current);
             range.collapse(false);
@@ -219,29 +219,28 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
         </div>
       </div>
 
-      {/* Editor Content - Now a simple contentEditable div */}
+      {/* Editor Content */}
       <div className="flex-1 overflow-auto p-4">
         <div
           ref={contentRef}
           contentEditable
           onInput={handleInput}
-          onKeyDown={(e) => {
+          onKeyDown={(event) => {
             // Handle tab key to insert tab character instead of moving focus
-            if (e.key === 'Tab') {
-              e.preventDefault();
+            if (event.key === 'Tab') {
+              event.preventDefault();
               if (typeof document !== 'undefined') {
-                // Insert tab character at cursor position
                 document.execCommand('insertText', false, '\t');
                 handleInput();
               }
             }
             // Allow normal keyboard shortcuts
-            else if (e.ctrlKey || e.metaKey) {
-              if (e.key === 'b') {
-                e.preventDefault();
+            else if (event.ctrlKey || event.metaKey) {
+              if (event.key === 'b') {
+                event.preventDefault();
                 toggleBold();
-              } else if (e.key === 'i') {
-                e.preventDefault();
+              } else if (event.key === 'i') {
+                event.preventDefault();
                 toggleItalic();
               }
             }
