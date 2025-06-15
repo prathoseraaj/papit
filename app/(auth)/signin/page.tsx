@@ -39,7 +39,7 @@ const SignInPage = () => {
               <label>
                 <input type="checkbox" className="mr-2" /> Remember me
               </label>
-              <a href="#" className="hover:underline">Forgot password?</a>
+              <a href="#" className="hover:underline">Forgot password??</a>
             </div>
 
             <button className="w-full py-3 rounded bg-blue-600 hover:bg-blue-700 font-semibold">
