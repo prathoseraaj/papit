@@ -116,7 +116,7 @@ const Page = () => {
       </div>
       <div className="fixed bottom-4  z-50 ml-10 mb-5">
         <div
-          className="rounded-full  bg-black shadow-[0_0_30px_5px_rgba(250,250,250,0.2)] w-10 h-10 flex justify-center items-center shadow-white-500 cursor-pointer"
+          className="rounded-full  bg-black shadow-[0_0_30px_5px_rgba(50,50,50,0.2)] w-10 h-10 flex justify-center items-center shadow-white-500 cursor-pointer"
           onClick={() => setCommitfield(!commitfield)}
         >
           {commitfield ? <Image src="/image.png" alt="Gemini logo" height={25} width={25} /> : <VscGitCommit className="text-orange-400" size={16} />}
