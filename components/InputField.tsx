@@ -3,11 +3,23 @@ import React, { useState, useRef, useEffect } from "react";
 interface InputFieldProps {
   value: string;
   onChange: (value: string) => void;
+  fileName?: string;
+  onFileNameChange?: (name: string) => void;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
+const InputField: React.FC<InputFieldProps> = ({ 
+  value, 
+  onChange, 
+  fileName = "Untitled.txt",
+  onFileNameChange 
+}) => {
   const [content, setContent] = useState(value);
+  const [currentFileName, setCurrentFileName] = useState(fileName);
+  const [isEditingFileName, setIsEditingFileName] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const fileNameInputRef = useRef<HTMLInputElement>(null);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
   const [isUpdatingFromProps, setIsUpdatingFromProps] = useState(false);
 
   // Update content when value prop changes
@@ -42,6 +54,33 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
     }
   }, [value, content, isUpdatingFromProps]);
 
+  // Update fileName when prop changes
+  useEffect(() => {
+    setCurrentFileName(fileName);
+  }, [fileName]);
+
+  // Close download menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    
+    if (showDownloadMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDownloadMenu]);
+
+  // Focus file name input when editing starts
+  useEffect(() => {
+    if (isEditingFileName && fileNameInputRef.current) {
+      fileNameInputRef.current.focus();
+      fileNameInputRef.current.select();
+    }
+  }, [isEditingFileName]);
+
   const handleInput = () => {
     if (contentRef.current && !isUpdatingFromProps) {
       const newContent = contentRef.current.innerHTML;
@@ -49,6 +88,93 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
       setIsUpdatingFromProps(true);
       onChange(newContent);
       setTimeout(() => setIsUpdatingFromProps(false), 0);
+    }
+  };
+
+  const handleFileNameChange = (newName: string) => {
+    setCurrentFileName(newName);
+    onFileNameChange?.(newName);
+  };
+
+  const handleFileNameSubmit = () => {
+    setIsEditingFileName(false);
+    if (currentFileName.trim()) {
+      handleFileNameChange(currentFileName.trim());
+    } else {
+      setCurrentFileName(fileName); // Reset to original if empty
+    }
+  };
+
+  const downloadAsWord = () => {
+    const htmlContent = contentRef.current?.innerHTML || '';
+    const wordContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${currentFileName}</title>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+      </html>
+    `;
+    
+    const blob = new Blob([wordContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentFileName.replace(/\.[^/.]+$/, '')}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const downloadAsPDF = () => {
+    // For PDF generation, we'll create a print-friendly version
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const htmlContent = contentRef.current?.innerHTML || '';
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>${currentFileName}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                line-height: 1.6; 
+                max-width: 800px; 
+                margin: 0 auto; 
+                padding: 20px;
+              }
+              @media print {
+                body { margin: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            ${htmlContent}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
+    setShowDownloadMenu(false);
+  };
+
+  const toggleUnderline = () => {
+    if (typeof document !== 'undefined') {
+      document.execCommand('underline');
+      handleInput();
     }
   };
 
@@ -117,8 +243,9 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
 
   return (
     <div className="w-full h-full border border-[#252525] flex flex-col bg-[#131313]">
-      {/* Formatting Toolbar */}
-      <div className="flex flex-wrap p-2 gap-1 border-b border-[#252525]">
+      {/* Formatting Toolbar with File Name */}
+      <div className="flex flex-wrap items-center justify-between p-2 gap-2 border-b border-[#252525] bg-[#1a1a1a]">
+        <div className="flex flex-wrap items-center gap-1">
         <FormatButton
           active={isActive('bold')}
           onClick={toggleBold}
@@ -133,6 +260,14 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
           title="Italic (Ctrl+I)"
         >
           <span className="italic">I</span>
+        </FormatButton>
+        
+        <FormatButton
+          active={isActive('underline')}
+          onClick={toggleUnderline}
+          title="Underline (Ctrl+U)"
+        >
+          <span className="underline">U</span>
         </FormatButton>
         
         <FormatButton
@@ -218,6 +353,69 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
             <span className="text-lg">A</span>
           </FormatButton>
         </div>
+        </div>
+
+        {/* File Name Section with Three-Dot Menu */}
+        <div className="flex items-center gap-2 border-l border-[#252525] pl-4 relative">
+          {isEditingFileName ? (
+            <input
+              ref={fileNameInputRef}
+              type="text"
+              value={currentFileName}
+              onChange={(e) => setCurrentFileName(e.target.value)}
+              onBlur={handleFileNameSubmit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleFileNameSubmit();
+                if (e.key === 'Escape') {
+                  setCurrentFileName(fileName);
+                  setIsEditingFileName(false);
+                }
+              }}
+              className="bg-[#2a2a2a] text-gray-200 px-2 py-1 rounded text-xs border border-gray-600 focus:border-blue-500 focus:outline-none min-w-[120px]"
+            />
+          ) : (
+            <span
+              onClick={() => setIsEditingFileName(true)}
+              className="text-gray-200 text-xs cursor-pointer hover:text-white hover:bg-[#2a2a2a] px-2 py-1 rounded transition-colors"
+              title="Click to rename file"
+            >
+              {currentFileName}
+            </span>
+          )}
+          
+          {/* Three-Dot Menu */}
+          <div className="relative" ref={downloadMenuRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDownloadMenu(!showDownloadMenu);
+              }}
+              className="p-1 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
+              title="Download options"
+            >
+              <ThreeDotsIcon />
+            </button>
+            
+            {showDownloadMenu && (
+              <div className="absolute right-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[160px]">
+                <button
+                  onClick={downloadAsPDF}
+                  className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-2"
+                >
+                  <DownloadIcon />
+                  Download as PDF
+                </button>
+                <button
+                  onClick={downloadAsWord}
+                  className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-2"
+                >
+                  <DownloadIcon />
+                  Download as Word
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Editor Content */}
@@ -243,6 +441,9 @@ const InputField: React.FC<InputFieldProps> = ({ value, onChange }) => {
               } else if (event.key === 'i') {
                 event.preventDefault();
                 toggleItalic();
+              } else if (event.key === 'u') {
+                event.preventDefault();
+                toggleUnderline();
               }
             }
           }}
@@ -286,8 +487,8 @@ const FormatButton: React.FC<FormatButtonProps> = ({
   </button>
 );
 
-// Simple icon components
-const AlignLeftIcon = () => (
+// Icon components
+const AlignLeftIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
     <path 
       fill="currentColor" 
@@ -296,7 +497,7 @@ const AlignLeftIcon = () => (
   </svg>
 );
 
-const AlignCenterIcon = () => (
+const AlignCenterIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
     <path 
       fill="currentColor" 
@@ -305,7 +506,7 @@ const AlignCenterIcon = () => (
   </svg>
 );
 
-const AlignRightIcon = () => (
+const AlignRightIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
     <path 
       fill="currentColor" 
@@ -314,7 +515,7 @@ const AlignRightIcon = () => (
   </svg>
 );
 
-const LinkIcon = () => (
+const LinkIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
     <path 
       fill="currentColor" 
@@ -323,6 +524,24 @@ const LinkIcon = () => (
     <path 
       fill="currentColor" 
       d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" 
+    />
+  </svg>
+);
+
+const DownloadIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path 
+      fill="currentColor" 
+      d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" 
+    />
+  </svg>
+);
+
+const ThreeDotsIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path 
+      fill="currentColor" 
+      d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" 
     />
   </svg>
 );
