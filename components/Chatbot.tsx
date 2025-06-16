@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useRef, useEffect } from "react";
 import { LuSendHorizontal } from "react-icons/lu";
+import ReactMarkdown from 'react-markdown';
 
 type Message = {
   text: string;
@@ -71,7 +72,28 @@ const Chatbot = () => {
                   : "bg-[#252525] text-gray-200"
               }`}
             >
-              {msg.text}
+              {msg.sender === "bot" ? (
+                <div className="prose prose-sm prose-invert max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      p: (props) => <p className="mb-2 last:mb-0" {...props} />,
+                      code: (props) => (
+                        <code className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs" {...props} />
+                      ),
+                      pre: (props) => (
+                        <pre className="bg-[#1a1a1a] p-2 rounded mt-2 mb-2 overflow-x-auto" {...props} />
+                      ),
+                      ul: (props) => <ul className="list-disc list-inside mb-2" {...props} />,
+                      ol: (props) => <ol className="list-decimal list-inside mb-2" {...props} />,
+                      li: (props) => <li className="mb-1" {...props} />,
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                msg.text
+              )}
             </div>
           </div>
         ))}
