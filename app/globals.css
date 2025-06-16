@@ -27,3 +27,8 @@ body {
   color: var(--foreground);
   font-family: 'Outfit', Helvetica, sans-serif;
 }
+
+.ProseMirror:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
