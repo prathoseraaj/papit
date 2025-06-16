@@ -172,7 +172,7 @@ const InputField: React.FC<InputFieldProps> = ({
   return (
     <div className="w-full h-full border border-[#252525] flex flex-col bg-[#131313]">
       {/* Formatting Toolbar with File Name */}
-      <div className="flex flex-wrap items-center justify-between p-3 gap-2 border-b border-[#252525] bg-[#1a1a1a]">
+      <div className="flex flex-wrap items-center justify-center pr-3 pl-3 gap-2 border-b border-[#252525] bg-[#1a1a1a]">
         <div className="flex flex-wrap items-center gap-1">
           <FormatButton
             active={isActive("bold")}
@@ -289,7 +289,7 @@ const InputField: React.FC<InputFieldProps> = ({
         </div>
 
         {/* File Name Section with Download Menu */}
-        <div className="flex items-center gap-2 border-l border-[#252525] pl-4 relative">
+        <div className="flex items-center gap-2 border-l border-[#252525] ml-20 pl-4 relative">
           {isEditingFileName ? (
             <input
               ref={fileNameInputRef}
