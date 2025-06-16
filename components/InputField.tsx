@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { EditorContent, useEditor, Editor } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -171,125 +171,10 @@ const InputField: React.FC<InputFieldProps> = ({
 
   return (
     <div className="w-full h-full border border-[#252525] flex flex-col bg-[#131313]">
-      {/* Formatting Toolbar with File Name */}
-      <div className="flex flex-wrap items-center justify-center pr-3 pl-3 gap-2 border-b border-[#252525] bg-[#1a1a1a]">
-        <div className="flex flex-wrap items-center gap-1">
-          <FormatButton
-            active={isActive("bold")}
-            onClick={() => editor?.chain().focus().toggleBold().run()}
-            title="Bold (Ctrl+B)"
-          >
-            <span className="font-bold">B</span>
-          </FormatButton>
 
-          <FormatButton
-            active={isActive("italic")}
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
-            title="Italic (Ctrl+I)"
-          >
-            <span className="italic">I</span>
-          </FormatButton>
+      <div className="flex items-center justify-between p-3 gap-2 ">
 
-          <FormatButton
-            active={isActive("underline")}
-            onClick={() => editor?.chain().focus().toggleUnderline().run()}
-            title="Underline (Ctrl+U)"
-          >
-            <span className="underline">U</span>
-          </FormatButton>
-
-          <FormatButton
-            active={isActive("heading", { level: 1 })}
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 1 }).run()
-            }
-            title="Heading 1"
-          >
-            H1
-          </FormatButton>
-
-          <FormatButton
-            active={isActive("heading", { level: 2 })}
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 2 }).run()
-            }
-            title="Heading 2"
-          >
-            H2
-          </FormatButton>
-
-          <FormatButton
-            active={isActive("textAlign", "left")}
-            onClick={() =>
-              editor?.chain().focus().setTextAlign("left").run()
-            }
-            title="Align left"
-          >
-            <AlignLeftIcon />
-          </FormatButton>
-
-          <FormatButton
-            active={isActive("textAlign", "center")}
-            onClick={() =>
-              editor?.chain().focus().setTextAlign("center").run()
-            }
-            title="Align center"
-          >
-            <AlignCenterIcon />
-          </FormatButton>
-
-          <FormatButton
-            active={isActive("textAlign", "right")}
-            onClick={() =>
-              editor?.chain().focus().setTextAlign("right").run()
-            }
-            title="Align right"
-          >
-            <AlignRightIcon />
-          </FormatButton>
-
-          <FormatButton
-            active={isActive("link")}
-            onClick={setLink}
-            title="Insert/Create Link"
-          >
-            <LinkIcon />
-          </FormatButton>
-
-          {/* Font Size Controls */}
-          <div className="flex items-center gap-1 ml-2 border-l border-[#252525] pl-2">
-            <span className="text-gray-400 text-xs">Size:</span>
-            {/* Tiptap doesn't have native fontSize, so use heading/paragraph as alternatives */}
-            <FormatButton
-              active={isActive("paragraph")}
-              onClick={() => editor?.chain().focus().setParagraph().run()}
-              title="Normal text"
-            >
-              <span className="text-sm">A</span>
-            </FormatButton>
-            <FormatButton
-              active={isActive("heading", { level: 1 })}
-              onClick={() =>
-                editor?.chain().focus().toggleHeading({ level: 1 }).run()
-              }
-              title="Large text (H1)"
-            >
-              <span className="text-base">A</span>
-            </FormatButton>
-            <FormatButton
-              active={isActive("heading", { level: 2 })}
-              onClick={() =>
-                editor?.chain().focus().toggleHeading({ level: 2 }).run()
-              }
-              title="Medium text (H2)"
-            >
-              <span className="text-lg">A</span>
-            </FormatButton>
-          </div>
-        </div>
-
-        {/* File Name Section with Download Menu */}
-        <div className="flex items-center gap-2 border-l border-[#252525] ml-20 pl-4 relative">
+        <div className="flex items-center gap-2 min-w-[220px]">
           {isEditingFileName ? (
             <input
               ref={fileNameInputRef}
@@ -328,9 +213,8 @@ const InputField: React.FC<InputFieldProps> = ({
             >
               <ThreeDotsIcon />
             </button>
-
             {showDownloadMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[220px]">
+              <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[180px]">
                 <button
                   onClick={downloadAsWord}
                   className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
@@ -342,11 +226,119 @@ const InputField: React.FC<InputFieldProps> = ({
             )}
           </div>
         </div>
+        {/* Center: Toolbar Buttons */}
+        <div className="flex-1 flex justify-center">
+          <div className="flex flex-wrap items-center gap-1">
+            <FormatButton
+              active={isActive("bold")}
+              onClick={() => editor?.chain().focus().toggleBold().run()}
+              title="Bold (Ctrl+B)"
+            >
+              <span className="font-bold">B</span>
+            </FormatButton>
+            <FormatButton
+              active={isActive("italic")}
+              onClick={() => editor?.chain().focus().toggleItalic().run()}
+              title="Italic (Ctrl+I)"
+            >
+              <span className="italic">I</span>
+            </FormatButton>
+            <FormatButton
+              active={isActive("underline")}
+              onClick={() => editor?.chain().focus().toggleUnderline().run()}
+              title="Underline (Ctrl+U)"
+            >
+              <span className="underline">U</span>
+            </FormatButton>
+            <FormatButton
+              active={isActive("heading", { level: 1 })}
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              title="Heading 1"
+            >
+              H1
+            </FormatButton>
+            <FormatButton
+              active={isActive("heading", { level: 2 })}
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+              title="Heading 2"
+            >
+              H2
+            </FormatButton>
+            <FormatButton
+              active={isActive("textAlign", "left")}
+              onClick={() => editor?.chain().focus().setTextAlign("left").run()}
+              title="Align left"
+            >
+              <AlignLeftIcon />
+            </FormatButton>
+            <FormatButton
+              active={isActive("textAlign", "center")}
+              onClick={() =>
+                editor?.chain().focus().setTextAlign("center").run()
+              }
+              title="Align center"
+            >
+              <AlignCenterIcon />
+            </FormatButton>
+            <FormatButton
+              active={isActive("textAlign", "right")}
+              onClick={() =>
+                editor?.chain().focus().setTextAlign("right").run()
+              }
+              title="Align right"
+            >
+              <AlignRightIcon />
+            </FormatButton>
+            <FormatButton
+              active={isActive("link")}
+              onClick={setLink}
+              title="Insert/Create Link"
+            >
+              <LinkIcon />
+            </FormatButton>
+            {/* Font Size Controls */}
+            <div className="flex items-center gap-1 ml-2 border-l border-[#252525] pl-2">
+              <span className="text-gray-400 text-xs">Size:</span>
+              <FormatButton
+                active={isActive("paragraph")}
+                onClick={() => editor?.chain().focus().setParagraph().run()}
+                title="Normal text"
+              >
+                <span className="text-sm">A</span>
+              </FormatButton>
+              <FormatButton
+                active={isActive("heading", { level: 1 })}
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                }
+                title="Large text (H1)"
+              >
+                <span className="text-base">A</span>
+              </FormatButton>
+              <FormatButton
+                active={isActive("heading", { level: 2 })}
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                }
+                title="Medium text (H2)"
+              >
+                <span className="text-lg">A</span>
+              </FormatButton>
+            </div>
+          </div>
+        </div>
+        {/* Right: (empty; for future use or symmetry) */}
+        <div className="min-w-[180px]" />
       </div>
 
       {/* Editor Content */}
       <div className="flex-1 overflow-auto p-6">
-        <div className="h-full prose prose-invert max-w-none focus:outline-none whitespace-pre-wrap break-words overflow-wrap-anywhere"
+        <div
+          className="h-full prose prose-invert max-w-none focus:outline-none whitespace-pre-wrap break-words overflow-wrap-anywhere"
           style={{
             outline: "none",
             wordBreak: "break-word",
@@ -360,6 +352,14 @@ const InputField: React.FC<InputFieldProps> = ({
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      {/* Remove ProseMirror's blue outline on focus */}
+      <style jsx global>{`
+        .ProseMirror:focus {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
     </div>
   );
 };
