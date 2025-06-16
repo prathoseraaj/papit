@@ -1,4 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import { EditorContent, useEditor, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
+import Heading from "@tiptap/extension-heading";
 
 interface InputFieldProps {
   value: string;
@@ -7,52 +13,44 @@ interface InputFieldProps {
   onFileNameChange?: (name: string) => void;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ 
-  value, 
-  onChange, 
+const InputField: React.FC<InputFieldProps> = ({
+  value,
+  onChange,
   fileName = "Untitled.txt",
-  onFileNameChange 
+  onFileNameChange,
 }) => {
-  const [content, setContent] = useState(value);
   const [currentFileName, setCurrentFileName] = useState(fileName);
   const [isEditingFileName, setIsEditingFileName] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
   const fileNameInputRef = useRef<HTMLInputElement>(null);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
-  const [isUpdatingFromProps, setIsUpdatingFromProps] = useState(false);
+
+  // Editor setup
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Heading.configure({ levels: [1, 2] }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+    ],
+    content: value,
+    onUpdate({ editor }) {
+      onChange(editor.getHTML());
+    },
+  });
 
   // Update content when value prop changes
   useEffect(() => {
-    if (value !== content && !isUpdatingFromProps) {
-      setContent(value);
-      if (contentRef.current && contentRef.current.innerHTML !== value) {
-        // Save cursor position
-        const selection = window.getSelection();
-        const range = selection?.getRangeAt(0);
-        const cursorOffset = range?.startOffset || 0;
-        
-        contentRef.current.innerHTML = value;
-        
-        // Restore cursor position if possible
-        if (selection && range && contentRef.current.firstChild) {
-          try {
-            range.setStart(contentRef.current.firstChild, Math.min(cursorOffset, contentRef.current.textContent?.length || 0));
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-          } catch (error) {
-            // Fallback: place cursor at end
-            range.selectNodeContents(contentRef.current);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            console.log(error)
-          }
-        }
-      }
+    if (editor && editor.getHTML() !== value) {
+      editor.commands.setContent(value, false);
     }
-  }, [value, content, isUpdatingFromProps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
 
   // Update fileName when prop changes
   useEffect(() => {
@@ -62,14 +60,17 @@ const InputField: React.FC<InputFieldProps> = ({
   // Close download menu on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
+      if (
+        downloadMenuRef.current &&
+        !downloadMenuRef.current.contains(event.target as Node)
+      ) {
         setShowDownloadMenu(false);
       }
     };
-    
+
     if (showDownloadMenu) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
   }, [showDownloadMenu]);
 
@@ -81,16 +82,6 @@ const InputField: React.FC<InputFieldProps> = ({
     }
   }, [isEditingFileName]);
 
-  const handleInput = () => {
-    if (contentRef.current && !isUpdatingFromProps) {
-      const newContent = contentRef.current.innerHTML;
-      setContent(newContent);
-      setIsUpdatingFromProps(true);
-      onChange(newContent);
-      setTimeout(() => setIsUpdatingFromProps(false), 0);
-    }
-  };
-
   const handleFileNameChange = (newName: string) => {
     setCurrentFileName(newName);
     onFileNameChange?.(newName);
@@ -101,30 +92,55 @@ const InputField: React.FC<InputFieldProps> = ({
     if (currentFileName.trim()) {
       handleFileNameChange(currentFileName.trim());
     } else {
-      setCurrentFileName(fileName); // Reset to original if empty
+      setCurrentFileName(fileName);
     }
   };
 
   const downloadAsWord = () => {
-    const htmlContent = contentRef.current?.innerHTML || '';
+    if (!editor) return;
+    const htmlContent = editor.getHTML();
     const wordContent = `
       <!DOCTYPE html>
-      <html>
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
           <meta charset="utf-8">
           <title>${currentFileName}</title>
+          <!--[if gte mso 9]>
+          <xml>
+            <w:WordDocument>
+              <w:View>Print</w:View>
+              <w:Zoom>90</w:Zoom>
+            </w:WordDocument>
+          </xml>
+          <![endif]-->
+          <style>
+            @page { size: 8.5in 11in; margin: 1in; }
+            body {
+              font-family: 'Times New Roman', serif;
+              font-size: 12pt;
+              line-height: 1.5;
+              color: black;
+              background: white;
+              margin: 0;
+              padding: 0;
+            }
+            h1 { font-size: 18pt; font-weight: bold; margin: 12pt 0; }
+            h2 { font-size: 16pt; font-weight: bold; margin: 10pt 0; }
+            p { margin: 6pt 0; }
+            img { max-width: 100%; height: auto; }
+          </style>
         </head>
         <body>
           ${htmlContent}
         </body>
       </html>
     `;
-    
-    const blob = new Blob([wordContent], { type: 'application/msword' });
+
+    const blob = new Blob([wordContent], { type: "application/msword" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${currentFileName.replace(/\.[^/.]+$/, '')}.doc`;
+    a.download = `${currentFileName.replace(/\.[^/.]+$/, "")}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -132,230 +148,147 @@ const InputField: React.FC<InputFieldProps> = ({
     setShowDownloadMenu(false);
   };
 
-  const downloadAsPDF = () => {
-    // For PDF generation, we'll create a print-friendly version
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      const htmlContent = contentRef.current?.innerHTML || '';
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>${currentFileName}</title>
-            <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                line-height: 1.6; 
-                max-width: 800px; 
-                margin: 0 auto; 
-                padding: 20px;
-              }
-              @media print {
-                body { margin: 0; }
-              }
-            </style>
-          </head>
-          <body>
-            ${htmlContent}
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 250);
-    }
-    setShowDownloadMenu(false);
-  };
-
-  const toggleUnderline = () => {
-    if (typeof document !== 'undefined') {
-      document.execCommand('underline');
-      handleInput();
-    }
-  };
-
-  const toggleBold = () => {
-    if (typeof document !== 'undefined') {
-      document.execCommand('bold');
-      handleInput();
-    }
-  };
-
-  const toggleItalic = () => {
-    if (typeof document !== 'undefined') {
-      document.execCommand('italic');
-      handleInput();
-    }
-  };
-
-  const toggleHeading = (level: 1 | 2) => {
-    if (typeof document !== 'undefined') {
-      document.execCommand('formatBlock', false, `h${level}`);
-      handleInput();
-    }
-  };
-
-  const setTextAlign = (alignment: 'left' | 'center' | 'right') => {
-    if (typeof document !== 'undefined') {
-      document.execCommand('justify' + alignment.charAt(0).toUpperCase() + alignment.slice(1));
-      handleInput();
-    }
-  };
-
   const setLink = () => {
-    if (typeof window !== 'undefined') {
-      const selection = window.getSelection();
-      if (selection && selection.toString()) {
-        // If text is selected, create a link with that text
-        const url = window.prompt('Enter URL:');
-        if (url && typeof document !== 'undefined') {
-          document.execCommand('createLink', false, url);
-          handleInput();
-        }
-      } else {
-        // If no text selected, prompt for both text and URL
-        const linkText = window.prompt('Enter link text:');
-        if (linkText) {
-          const url = window.prompt('Enter URL:');
-          if (url && typeof document !== 'undefined') {
-            document.execCommand('insertHTML', false, `<a href="${url}" target="_blank">${linkText}</a>`);
-            handleInput();
-          }
-        }
-      }
+    if (!editor) return;
+    const prevUrl = editor.getAttributes("link").href;
+    const url = window.prompt("Enter URL", prevUrl);
+    if (url === null) return;
+    if (url === "") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
     }
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: url, target: "_blank" })
+      .run();
   };
 
-  const setFontSize = (size: string) => {
-    if (typeof document !== 'undefined') {
-      document.execCommand('fontSize', false, size);
-      handleInput();
-    }
-  };
-
-  const isActive = (command: string) => {
-    return typeof document !== 'undefined' ? document.queryCommandState(command) : false;
-  };
+  // Formatting helpers
+  const isActive = (type: string, opts?: any) =>
+    editor ? editor.isActive(type, opts) : false;
 
   return (
     <div className="w-full h-full border border-[#252525] flex flex-col bg-[#131313]">
       {/* Formatting Toolbar with File Name */}
-      <div className="flex flex-wrap items-center justify-between p-2 gap-2 border-b border-[#252525] bg-[#1a1a1a]">
+      <div className="flex flex-wrap items-center justify-between p-3 gap-2 border-b border-[#252525] bg-[#1a1a1a]">
         <div className="flex flex-wrap items-center gap-1">
-        <FormatButton
-          active={isActive('bold')}
-          onClick={toggleBold}
-          title="Bold (Ctrl+B)"
-        >
-          <span className="font-bold">B</span>
-        </FormatButton>
-        
-        <FormatButton
-          active={isActive('italic')}
-          onClick={toggleItalic}
-          title="Italic (Ctrl+I)"
-        >
-          <span className="italic">I</span>
-        </FormatButton>
-        
-        <FormatButton
-          active={isActive('underline')}
-          onClick={toggleUnderline}
-          title="Underline (Ctrl+U)"
-        >
-          <span className="underline">U</span>
-        </FormatButton>
-        
-        <FormatButton
-          active={false}
-          onClick={() => toggleHeading(1)}
-          title="Heading 1"
-        >
-          H1
-        </FormatButton>
-        
-        <FormatButton
-          active={false}
-          onClick={() => toggleHeading(2)}
-          title="Heading 2"
-        >
-          H2
-        </FormatButton>
-        
-        <FormatButton
-          active={isActive('justifyLeft')}
-          onClick={() => setTextAlign('left')}
-          title="Align left"
-        >
-          <AlignLeftIcon />
-        </FormatButton>
-        
-        <FormatButton
-          active={isActive('justifyCenter')}
-          onClick={() => setTextAlign('center')}
-          title="Align center"
-        >
-          <AlignCenterIcon />
-        </FormatButton>
-        
-        <FormatButton
-          active={isActive('justifyRight')}
-          onClick={() => setTextAlign('right')}
-          title="Align right"
-        >
-          <AlignRightIcon />
-        </FormatButton>
-        
-        <FormatButton
-          active={false}
-          onClick={setLink}
-          title="Insert/Create Link - Select text first to make it a link, or click to add new link"
-        >
-          <LinkIcon />
-        </FormatButton>
+          <FormatButton
+            active={isActive("bold")}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            title="Bold (Ctrl+B)"
+          >
+            <span className="font-bold">B</span>
+          </FormatButton>
 
-        {/* Font Size Controls */}
-        <div className="flex items-center gap-1 ml-2 border-l border-[#252525] pl-2">
-          <span className="text-gray-400 text-xs">Size:</span>
           <FormatButton
-            active={false}
-            onClick={() => setFontSize('1')}
-            title="Small text"
+            active={isActive("italic")}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            title="Italic (Ctrl+I)"
           >
-            <span className="text-xs">A</span>
+            <span className="italic">I</span>
           </FormatButton>
-          
+
           <FormatButton
-            active={false}
-            onClick={() => setFontSize('3')}
-            title="Normal text"
+            active={isActive("underline")}
+            onClick={() => editor?.chain().focus().toggleUnderline().run()}
+            title="Underline (Ctrl+U)"
           >
-            <span className="text-sm">A</span>
+            <span className="underline">U</span>
           </FormatButton>
-          
+
           <FormatButton
-            active={false}
-            onClick={() => setFontSize('5')}
-            title="Large text"
+            active={isActive("heading", { level: 1 })}
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            title="Heading 1"
           >
-            <span className="text-base">A</span>
+            H1
           </FormatButton>
-          
+
           <FormatButton
-            active={false}
-            onClick={() => setFontSize('7')}
-            title="Extra large text"
+            active={isActive("heading", { level: 2 })}
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            title="Heading 2"
           >
-            <span className="text-lg">A</span>
+            H2
           </FormatButton>
-        </div>
+
+          <FormatButton
+            active={isActive("textAlign", "left")}
+            onClick={() =>
+              editor?.chain().focus().setTextAlign("left").run()
+            }
+            title="Align left"
+          >
+            <AlignLeftIcon />
+          </FormatButton>
+
+          <FormatButton
+            active={isActive("textAlign", "center")}
+            onClick={() =>
+              editor?.chain().focus().setTextAlign("center").run()
+            }
+            title="Align center"
+          >
+            <AlignCenterIcon />
+          </FormatButton>
+
+          <FormatButton
+            active={isActive("textAlign", "right")}
+            onClick={() =>
+              editor?.chain().focus().setTextAlign("right").run()
+            }
+            title="Align right"
+          >
+            <AlignRightIcon />
+          </FormatButton>
+
+          <FormatButton
+            active={isActive("link")}
+            onClick={setLink}
+            title="Insert/Create Link"
+          >
+            <LinkIcon />
+          </FormatButton>
+
+          {/* Font Size Controls */}
+          <div className="flex items-center gap-1 ml-2 border-l border-[#252525] pl-2">
+            <span className="text-gray-400 text-xs">Size:</span>
+            {/* Tiptap doesn't have native fontSize, so use heading/paragraph as alternatives */}
+            <FormatButton
+              active={isActive("paragraph")}
+              onClick={() => editor?.chain().focus().setParagraph().run()}
+              title="Normal text"
+            >
+              <span className="text-sm">A</span>
+            </FormatButton>
+            <FormatButton
+              active={isActive("heading", { level: 1 })}
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              title="Large text (H1)"
+            >
+              <span className="text-base">A</span>
+            </FormatButton>
+            <FormatButton
+              active={isActive("heading", { level: 2 })}
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+              title="Medium text (H2)"
+            >
+              <span className="text-lg">A</span>
+            </FormatButton>
+          </div>
         </div>
 
-        {/* File Name Section with Three-Dot Menu */}
+        {/* File Name Section with Download Menu */}
         <div className="flex items-center gap-2 border-l border-[#252525] pl-4 relative">
           {isEditingFileName ? (
             <input
@@ -365,49 +298,42 @@ const InputField: React.FC<InputFieldProps> = ({
               onChange={(e) => setCurrentFileName(e.target.value)}
               onBlur={handleFileNameSubmit}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleFileNameSubmit();
-                if (e.key === 'Escape') {
+                if (e.key === "Enter") handleFileNameSubmit();
+                if (e.key === "Escape") {
                   setCurrentFileName(fileName);
                   setIsEditingFileName(false);
                 }
               }}
-              className="bg-[#2a2a2a] text-gray-200 px-2 py-1 rounded text-xs border border-gray-600 focus:border-blue-500 focus:outline-none min-w-[120px]"
+              className="bg-[#2a2a2a] text-gray-200 px-3 py-1 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none min-w-[140px]"
             />
           ) : (
             <span
               onClick={() => setIsEditingFileName(true)}
-              className="text-gray-200 text-xs cursor-pointer hover:text-white hover:bg-[#2a2a2a] px-2 py-1 rounded transition-colors"
+              className="text-gray-200 text-sm cursor-pointer hover:text-white hover:bg-[#2a2a2a] px-3 py-1 rounded transition-colors"
               title="Click to rename file"
             >
               {currentFileName}
             </span>
           )}
-          
-          {/* Three-Dot Menu */}
+
+          {/* Download Menu */}
           <div className="relative" ref={downloadMenuRef}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setShowDownloadMenu(!showDownloadMenu);
               }}
-              className="p-1 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
+              className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
               title="Download options"
             >
               <ThreeDotsIcon />
             </button>
-            
+
             {showDownloadMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[160px]">
-                <button
-                  onClick={downloadAsPDF}
-                  className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-2"
-                >
-                  <DownloadIcon />
-                  Download as PDF
-                </button>
+              <div className="absolute right-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[220px]">
                 <button
                   onClick={downloadAsWord}
-                  className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
                 >
                   <DownloadIcon />
                   Download as Word
@@ -419,49 +345,26 @@ const InputField: React.FC<InputFieldProps> = ({
       </div>
 
       {/* Editor Content */}
-      <div className="flex-1 overflow-auto p-4">
-        <div
-          ref={contentRef}
-          contentEditable
-          onInput={handleInput}
-          onKeyDown={(event) => {
-            // Handle tab key to insert tab character instead of moving focus
-            if (event.key === 'Tab') {
-              event.preventDefault();
-              if (typeof document !== 'undefined') {
-                document.execCommand('insertText', false, '\t');
-                handleInput();
-              }
-            }
-            // Allow normal keyboard shortcuts
-            else if (event.ctrlKey || event.metaKey) {
-              if (event.key === 'b') {
-                event.preventDefault();
-                toggleBold();
-              } else if (event.key === 'i') {
-                event.preventDefault();
-                toggleItalic();
-              } else if (event.key === 'u') {
-                event.preventDefault();
-                toggleUnderline();
-              }
-            }
+      <div className="flex-1 overflow-auto p-6">
+        <div className="h-full prose prose-invert max-w-none focus:outline-none whitespace-pre-wrap break-words overflow-wrap-anywhere"
+          style={{
+            outline: "none",
+            wordBreak: "break-word",
+            overflowWrap: "break-word",
+            whiteSpace: "pre-wrap",
+            minHeight: "400px",
+            lineHeight: "1.6",
+            padding: "40px 60px",
           }}
-          className="h-full text-gray-200 prose prose-invert max-w-none focus:outline-none whitespace-pre-wrap break-words overflow-wrap-anywhere"
-          style={{ 
-            outline: 'none',
-            wordBreak: 'break-word',
-            overflowWrap: 'break-word',
-            whiteSpace: 'pre-wrap'
-          }}
-          suppressContentEditableWarning={true}
-        />
+        >
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   );
 };
 
-// Helper components for better organization
+// Helper components
 interface FormatButtonProps {
   active: boolean;
   onClick: () => void;
@@ -469,18 +372,18 @@ interface FormatButtonProps {
   children: React.ReactNode;
 }
 
-const FormatButton: React.FC<FormatButtonProps> = ({ 
-  active, 
-  onClick, 
+const FormatButton: React.FC<FormatButtonProps> = ({
+  active,
+  onClick,
   title,
-  children 
+  children,
 }) => (
   <button
     type="button"
     onClick={onClick}
     title={title}
     className={`p-2 rounded hover:bg-gray-800 transition-colors ${
-      active ? 'bg-gray-700 text-white' : 'text-gray-400'
+      active ? "bg-gray-700 text-white" : "text-gray-400"
     }`}
   >
     {children}
@@ -490,58 +393,58 @@ const FormatButton: React.FC<FormatButtonProps> = ({
 // Icon components
 const AlignLeftIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
-    <path 
-      fill="currentColor" 
-      d="M3 3h18v2H3zm0 4h12v2H3zm0 4h18v2H3zm0 4h12v2H3z" 
+    <path
+      fill="currentColor"
+      d="M3 3h18v2H3zm0 4h12v2H3zm0 4h18v2H3zm0 4h12v2H3z"
     />
   </svg>
 );
 
 const AlignCenterIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
-    <path 
-      fill="currentColor" 
-      d="M3 3h18v2H3zm4 4h10v2H7zm-4 4h18v2H3zm4 4h10v2H7z" 
+    <path
+      fill="currentColor"
+      d="M3 3h18v2H3zm4 4h10v2H7zm-4 4h18v2H3zm4 4h10v2H7z"
     />
   </svg>
 );
 
 const AlignRightIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
-    <path 
-      fill="currentColor" 
-      d="M3 3h18v2H3zm6 4h12v2H9zm-6 4h18v2H3zm6 4h12v2H9z" 
+    <path
+      fill="currentColor"
+      d="M3 3h18v2H3zm6 4h12v2H9zm-6 4h18v2H3zm6 4h12v2H9z"
     />
   </svg>
 );
 
 const LinkIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
-    <path 
-      fill="currentColor" 
-      d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" 
+    <path
+      fill="currentColor"
+      d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
     />
-    <path 
-      fill="currentColor" 
-      d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" 
+    <path
+      fill="currentColor"
+      d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
     />
   </svg>
 );
 
 const DownloadIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
-    <path 
-      fill="currentColor" 
-      d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z" 
+    <path
+      fill="currentColor"
+      d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"
     />
   </svg>
 );
 
 const ThreeDotsIcon: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24">
-    <path 
-      fill="currentColor" 
-      d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" 
+    <path
+      fill="currentColor"
+      d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
     />
   </svg>
 );
