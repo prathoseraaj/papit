@@ -10,7 +10,7 @@ import Image from "next/image";
 
 const Page = () => {
   const [fileContent, setFileContent] = useState("");
-  const [fileName, setFileName] = useState("Untitled.txt");
+  const [fileName, setFileName] = useState("");
   const [commitfield, setCommitfield] = useState(true);
 
   const handleInputChange = (text: string) => {

@@ -38,7 +38,7 @@ const InputField: React.FC<InputFieldProps> = ({
 
   // Enhanced default content
   const defaultContent = `
-  <h1>Getting Started</h1>
+  <h2>Getting Started</h2>
   <p>Welcome to <strong>VIND</strong>, an opensource rich text editor! All extensions are licensed under <strong>MIT</strong>.</p>
   <p>Integrate it by following the <a href="https://vind-docs.example.com" target="_blank">Vind_docs</a> or using our CLI tool.</p>
   
@@ -147,7 +147,6 @@ const InputField: React.FC<InputFieldProps> = ({
     onUpdate({ editor }) {
       onChange(editor.getHTML());
     },
-    autofocus: "end",
   });
 
   // Update content when value prop changes, but only if it's different and not empty
@@ -364,31 +363,7 @@ const InputField: React.FC<InputFieldProps> = ({
       <div className="flex items-center justify-between p-3 gap-2">
         {/* Left: File Name */}
         <div className="flex items-center gap-2 min-w-[220px]">
-          {isEditingFileName ? (
-            <input
-              ref={fileNameInputRef}
-              type="text"
-              value={currentFileName}
-              onChange={(e) => setCurrentFileName(e.target.value)}
-              onBlur={handleFileNameSubmit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleFileNameSubmit();
-                if (e.key === "Escape") {
-                  setCurrentFileName(fileName);
-                  setIsEditingFileName(false);
-                }
-              }}
-              className="bg-[#2a2a2a] text-gray-200 px-3 py-1 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none min-w-[140px]"
-            />
-          ) : (
-            <span
-              onClick={() => setIsEditingFileName(true)}
-              className="text-gray-200 text-sm cursor-pointer hover:text-white hover:bg-[#2a2a2a] px-3 py-1 rounded transition-colors"
-              title="Click to rename file"
-            >
-              {currentFileName}
-            </span>
-          )}
+        
 
           {/* Download Menu */}
           <div className="relative" ref={downloadMenuRef}>
