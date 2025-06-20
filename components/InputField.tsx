@@ -20,17 +20,17 @@ interface InputFieldProps {
   value: string;
   onChange: (value: string) => void;
   fileName?: string;
-  onFileNameChange?: (name: string) => void;
+  // onFileNameChange?: (name: string) => void; // Removed if unused
 }
 
 const InputField: React.FC<InputFieldProps> = ({
   value,
   onChange,
   fileName = "Untitled.txt",
-  onFileNameChange,
+  // onFileNameChange, // Removed if unused
 }) => {
-  const [currentFileName, setCurrentFileName] = useState(fileName);
-  const [isEditingFileName, setIsEditingFileName] = useState(false);
+  const [currentFileName, /* setCurrentFileName */] = useState(fileName); // Remove setter if unused
+  const [isEditingFileName, /* setIsEditingFileName */] = useState(false); // Remove setter if unused
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const fileNameInputRef = useRef<HTMLInputElement>(null);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
@@ -53,10 +53,7 @@ const InputField: React.FC<InputFieldProps> = ({
     <li><strong>Rich media support</strong> with drag & drop functionality.</li>
   </ul>
   
-  <img src="data:image/svg+xml;base64,PHN2ZyB3  // Update fileName when prop changes
-  useEffect(() => {
-    setCurrentFileName(fileName);
-  }, [fileName]);aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUYyOTM3Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSIyMDAiIHJ4PSIxMCIgZmlsbD0iIzM3NDE1MSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxMjAiIHI9IjMwIiBmaWxsPSIjNjM2NkYxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTMwIiBmaWxsPSIjRjlGQUZCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj5WSU5EIEVkaXRvcjwvdGV4dD4KPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZpbGw9IiM5Q0EzQUYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCI+UHJvZmVzc2lvbmFsIHJpY2ggdGV4dCBlZGl0aW5nPC90ZXh0Pgo8cmVjdCB4PSIyMDAiIHk9IjE4MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIvPgo8cmVjdCB4PSIyMDAiIHk9IjE5NSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIgb3BhY2l0eT0iMC42Ii8+CjxyZWN0IHg9IjIwMCIgeT0iMjEwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjMTBCOTgxIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+" alt="VIND Editor Interface Preview" />
+  <img src="data:image/svg+xml;base64,PHN2ZyB3..." alt="VIND Editor Interface Preview" />
   
   <p style="text-align: center"><em>↑ Learn more about our powerful editing features</em></p>
   
@@ -64,6 +61,7 @@ const InputField: React.FC<InputFieldProps> = ({
     <p><strong>Pro Tip:</strong> Use the toolbar above to access all formatting options, or leverage keyboard shortcuts for lightning-fast editing!</p>
   </blockquote>
 `;
+
   // Function to check if content is effectively empty
   const isContentEmpty = (content: string) => {
     if (!content) return true;
@@ -156,24 +154,19 @@ const InputField: React.FC<InputFieldProps> = ({
   useEffect(() => {
     if (editor && value !== undefined) {
       const currentContent = editor.getHTML();
-      // Only update if the value is different and either the value is not empty or current content is not the default
       if (currentContent !== value) {
         if (value && !isContentEmpty(value)) {
-          // Value has content, use it
           editor.commands.setContent(value, false);
         } else if (!value || isContentEmpty(value)) {
-          // Value is empty, only clear if current content is not the default content
           const currentTextOnly = currentContent.replace(/<[^>]*>/g, "").trim();
           const defaultTextOnly = defaultContent.replace(/<[^>]*>/g, "").trim();
-
           if (currentTextOnly !== defaultTextOnly) {
-            // Current content is not default content, so user has made changes
-            // Don't override with empty value unless explicitly clearing
+            // do nothing
           }
         }
       }
     }
-  }, [value, editor]);
+  }, [value, editor, defaultContent]);
 
   // Close download menu on click outside
   useEffect(() => {
@@ -200,7 +193,6 @@ const InputField: React.FC<InputFieldProps> = ({
     }
   }, [isEditingFileName]);
 
-
   const downloadAsWord = () => {
     if (!editor) return;
     const htmlContent = editor.getHTML();
@@ -209,7 +201,7 @@ const InputField: React.FC<InputFieldProps> = ({
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
           <meta charset="utf-8">
-          <title>${currentFileName}</title>
+          <title>${fileName}</title>
           <!--[if gte mso 9]>
           <xml>
             <w:WordDocument>
@@ -248,7 +240,7 @@ const InputField: React.FC<InputFieldProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${currentFileName.replace(/\.[^/.]+$/, "")}.doc`;
+    a.download = `${fileName.replace(/\.[^/.]+$/, "")}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -331,9 +323,8 @@ const InputField: React.FC<InputFieldProps> = ({
   };
 
   // Formatting helpers
-  const isActive = (type: string, opts?: any) =>
+  const isActive = (type: string, opts?: Record<string, unknown>) =>
     editor ? editor.isActive(type, opts) : false;
-
   return (
     <div className="w-full h-full border border-[#252525] flex flex-col bg-[#131313]">
       {/* Hidden file input for images */}
@@ -486,14 +477,14 @@ const InputField: React.FC<InputFieldProps> = ({
 
             {/* Alignment */}
             <FormatButton
-              active={isActive("textAlign", "left")}
+              active={isActive("textAlign", { align: "left" })}
               onClick={() => editor?.chain().focus().setTextAlign("left").run()}
               title="Align left"
             >
               <AlignLeftIcon />
             </FormatButton>
             <FormatButton
-              active={isActive("textAlign", "center")}
+              active={isActive("textAlign", { align: "center" })}
               onClick={() =>
                 editor?.chain().focus().setTextAlign("center").run()
               }
@@ -502,7 +493,7 @@ const InputField: React.FC<InputFieldProps> = ({
               <AlignCenterIcon />
             </FormatButton>
             <FormatButton
-              active={isActive("textAlign", "right")}
+              active={isActive("textAlign", { align: "right" })}
               onClick={() =>
                 editor?.chain().focus().setTextAlign("right").run()
               }

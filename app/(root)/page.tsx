@@ -33,7 +33,7 @@ const Page = () => {
             value={fileContent} 
             onChange={handleInputChange}
             fileName={fileName}
-            onFileNameChange={handleFileNameChange}
+            /* onFileNameChange={handleFileNameChange} */
           />
         </div>
         {/* Commit Field */}
