@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VIND ",
+  title: "Vind- Tool to keep your content trackable ",
   description: "A powerful, intuitive tool to manage document changes keep your content trackable",
 };
 
