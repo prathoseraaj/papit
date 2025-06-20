@@ -35,36 +35,29 @@ const InputField: React.FC<InputFieldProps> = ({
 
   // Enhanced default content
   const defaultContent = `
-    <h1>Professional Document Editor</h1>
-    <p>Welcome to your advanced rich text editor! This powerful tool offers comprehensive formatting options for creating professional documents.</p>
-    
-    <h2>Text Formatting Options</h2>
-    <p>Express your ideas with <strong>bold emphasis</strong>, <em>italic styling</em>, <u>underlined text</u>, and <mark>highlighted content</mark> for important information.</p>
-    
-    <h2>Document Structure</h2>
-    <p>Organize your content effectively with:</p>
-    <ul>
-      <li>Professional bullet points for lists</li>
-      <li>Multiple heading levels for hierarchy</li>
-      <li>Text alignment options for layout control</li>
-    </ul>
-    
-    <p>Create numbered sequences:</p>
-    <ol>
-      <li>Step-by-step instructions</li>
-      <li>Priority rankings</li>
-      <li>Sequential processes</li>
-    </ol>
-    
-    <h2>Advanced Features</h2>
-    <p style="text-align: center">Center-aligned text for titles and emphasis</p>
-    <p style="text-align: right">Right-aligned text for signatures and dates</p>
-    
-    <p>Add hyperlinks to reference external sources and enhance your document's connectivity. Upload images to make your content more engaging and visually appealing.</p>
-    
-    <p><strong>Pro Tip:</strong> Use the toolbar above to access all formatting options, or use keyboard shortcuts for quick formatting!</p>
-  `;
-
+  <h1>Getting Started</h1>
+  <p>Welcome to <strong>VIND</strong>, an opensource rich text editor! All extensions are licensed under <strong>MIT</strong>.</p>
+  <p>Integrate it by following the <a href="https://vind-docs.example.com" target="_blank">Vind_docs</a> or using our CLI tool.</p>
+  
+  <h2>Features</h2>
+  <p>A fully responsive rich text editor with built-in support for common formatting and layout tools. Type markdown <strong>**</strong> or use keyboard shortcuts <code>⌘+B</code> for <s>most</s> all common markdown marks. 🪄</p>
+  
+  <p>Add images, customize alignment, and apply advanced formatting to make your writing more engaging and professional.</p>
+  
+  <ul>
+    <li><strong>Superscript</strong> (x²) and <strong>Subscript</strong> (H₂O) for precision.</li>
+    <li><strong>Typographic conversion</strong>: automatically convert <code>-></code> to an arrow <strong>→</strong>.</li>
+    <li><strong>Rich media support</strong> with drag & drop functionality.</li>
+  </ul>
+  
+  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUYyOTM3Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSIyMDAiIHJ4PSIxMCIgZmlsbD0iIzM3NDE1MSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxMjAiIHI9IjMwIiBmaWxsPSIjNjM2NkYxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTMwIiBmaWxsPSIjRjlGQUZCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj5WSU5EIEVkaXRvcjwvdGV4dD4KPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZpbGw9IiM5Q0EzQUYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCI+UHJvZmVzc2lvbmFsIHJpY2ggdGV4dCBlZGl0aW5nPC90ZXh0Pgo8cmVjdCB4PSIyMDAiIHk9IjE4MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIvPgo8cmVjdCB4PSIyMDAiIHk9IjE5NSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIgb3BhY2l0eT0iMC42Ii8+CjxyZWN0IHg9IjIwMCIgeT0iMjEwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjMTBCOTgxIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+" alt="VIND Editor Interface Preview" />
+  
+  <p style="text-align: center"><em>↑ Learn more about our powerful editing features</em></p>
+  
+  <blockquote>
+    <p><strong>Pro Tip:</strong> Use the toolbar above to access all formatting options, or leverage keyboard shortcuts for lightning-fast editing!</p>
+  </blockquote>
+`;
   // Function to check if content is effectively empty
   const isContentEmpty = (content: string) => {
     if (!content) return true;
@@ -553,12 +546,14 @@ const InputField: React.FC<InputFieldProps> = ({
 
       {/* Editor Content */}
       <div className="flex-1 overflow-auto hide-scrollbar">
-        <div className="max-w-4xl mx-auto p-8">
+        <div className="max-w-4xl mx-auto px-16 py-8">
           <div
             className="min-h-[600px] prose prose-invert prose-lg max-w-none focus:outline-none"
             style={{
               outline: "none",
               lineHeight: "1.7",
+              paddingLeft: "4rem",
+              paddingRight: "4rem",
             }}
           >
             <EditorContent editor={editor} />
