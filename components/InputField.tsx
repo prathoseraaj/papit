@@ -12,6 +12,9 @@ import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
+import Superscript from "@tiptap/extension-superscript";
+import Subscript from "@tiptap/extension-subscript";
+import Typography from "@tiptap/extension-typography";
 
 interface InputFieldProps {
   value: string;
@@ -80,6 +83,29 @@ const InputField: React.FC<InputFieldProps> = ({
       StarterKit,
       Underline,
       Strike,
+      Superscript,
+      Subscript,
+      Typography.configure({
+        openDoubleQuote: '"',
+        closeDoubleQuote: '"',
+        openSingleQuote: "'",
+        closeSingleQuote: "'",
+        emDash: "—",
+        ellipsis: "…",
+        copyright: "©",
+        trademark: "™",
+        registeredTrademark: "®",
+        oneHalf: "½",
+        oneQuarter: "¼",
+        threeQuarters: "¾",
+        plusMinus: "±",
+        notEqual: "≠",
+        laquo: "«",
+        raquo: "»",
+        multiplication: "×",
+        superscriptTwo: "²",
+        superscriptThree: "³",
+      }),
       Highlight.configure({ multicolor: true }),
       Link.configure({
         openOnClick: false,
@@ -461,6 +487,20 @@ const InputField: React.FC<InputFieldProps> = ({
             >
               H3
             </FormatButton>
+            <FormatButton
+              active={isActive("superscript")}
+              onClick={() => editor?.chain().focus().toggleSuperscript().run()}
+              title="Superscript (Ctrl+.)"
+            >
+              <SuperscriptIcon />
+            </FormatButton>
+            <FormatButton
+              active={isActive("subscript")}
+              onClick={() => editor?.chain().focus().toggleSubscript().run()}
+              title="Subscript (Ctrl+,)"
+            >
+              <SubscriptIcon />
+            </FormatButton>
 
             {/* Divider */}
             <div className="w-px h-6 bg-gray-600 mx-1" />
@@ -660,6 +700,21 @@ const InputField: React.FC<InputFieldProps> = ({
           color: #93c5fd;
           text-decoration-color: #93c5fd;
         }
+        .ProseMirror sup {
+          font-size: 0.75em;
+          line-height: 0;
+          position: relative;
+          vertical-align: baseline;
+          top: -0.5em;
+        }
+
+        .ProseMirror sub {
+          font-size: 0.75em;
+          line-height: 0;
+          position: relative;
+          vertical-align: baseline;
+          bottom: -0.25em;
+        }
       `}</style>
     </div>
   );
@@ -779,6 +834,23 @@ const OrderedListIcon: React.FC = () => (
     <path
       fill="currentColor"
       d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"
+    />
+  </svg>
+);
+const SuperscriptIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M16 7.41L11.41 12L16 16.59L14.59 18L10 13.41L5.41 18L4 16.59L8.59 12L4 7.41L5.41 6L10 10.59L14.59 6L16 7.41ZM21.85 9h-2.28l.77-1.15c.13-.2.2-.43.2-.68c0-.6-.4-1.17-1.04-1.17c-.43 0-.8.26-.96.65L17.76 7.5c.42-.93 1.34-1.5 2.39-1.5c1.45 0 2.54 1.17 2.54 2.67c0 .69-.23 1.35-.64 1.84L20.1 13h1.75v1.5h-4.09L21.85 9z"
+    />
+  </svg>
+);
+
+const SubscriptIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M16 7.41L11.41 12L16 16.59L14.59 18L10 13.41L5.41 18L4 16.59L8.59 12L4 7.41L5.41 6L10 10.59L14.59 6L16 7.41ZM22 18h-2v-1h2v1ZM20.5 14.5c-.28 0-.5.22-.5.5s.22.5.5.5s.5-.22.5-.5s-.22-.5-.5-.5ZM22 16c0 1.11-.89 2-2 2h-1.5v-1H20c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v-1h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H18v-1h2c1.11 0 2 .89 2 2c0 .37-.11.7-.28.96c.17.26.28.59.28.96Z"
     />
   </svg>
 );
