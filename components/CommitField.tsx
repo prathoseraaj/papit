@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { VscGitCommit, VscChevronDown, VscChevronRight } from "react-icons/vsc";
 
 interface Commit {
@@ -14,26 +14,40 @@ interface CommitFieldProps {
   onCommitSelect: (content: string) => void;
 }
 
-const CommitField: React.FC<CommitFieldProps> = ({ 
-  currentContent, 
-  fileName, 
-  onCommitSelect 
+// In-memory storage to persist commits across component re-renders
+const commitStorage: { [key: string]: Commit[] } = {};
+
+const CommitField: React.FC<CommitFieldProps> = ({
+  currentContent,
+  fileName,
+  onCommitSelect,
 }) => {
-  const [commits, setCommits] = useState<Commit[]>([]);
+  const storageKey = `commits_${fileName}`;
+
+  // Load commits from in-memory storage on mount
+  const [commits, setCommits] = useState<Commit[]>(() => {
+    return commitStorage[storageKey] || [];
+  });
+
   const [commitMessage, setCommitMessage] = useState("");
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Save commits to in-memory storage whenever they change
+  useEffect(() => {
+    commitStorage[storageKey] = commits;
+  }, [commits, storageKey]);
+
   const handleCommit = () => {
     if (!commitMessage.trim()) return;
-    
+
     const newCommit: Commit = {
       id: Math.random().toString(36).substring(2, 9),
       message: commitMessage,
       content: currentContent,
-      timestamp: new Date().toLocaleString()
+      timestamp: new Date().toLocaleString(),
     };
 
-    setCommits(prev => [newCommit, ...prev]);
+    setCommits((prev) => [newCommit, ...prev]);
     setCommitMessage("");
   };
 
