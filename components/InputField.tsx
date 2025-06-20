@@ -19,20 +19,13 @@ import Typography from "@tiptap/extension-typography";
 interface InputFieldProps {
   value: string;
   onChange: (value: string) => void;
-  fileName?: string;
-  // onFileNameChange?: (name: string) => void; // Removed if unused
 }
 
 const InputField: React.FC<InputFieldProps> = ({
   value,
   onChange,
-  fileName = "Untitled.txt",
-  // onFileNameChange, // Removed if unused
 }) => {
-  const [currentFileName, /* setCurrentFileName */] = useState(fileName); // Remove setter if unused
-  const [isEditingFileName, /* setIsEditingFileName */] = useState(false); // Remove setter if unused
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const fileNameInputRef = useRef<HTMLInputElement>(null);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +46,7 @@ const InputField: React.FC<InputFieldProps> = ({
     <li><strong>Rich media support</strong> with drag & drop functionality.</li>
   </ul>
   
-  <img src="data:image/svg+xml;base64,PHN2ZyB3..." alt="VIND Editor Interface Preview" />
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUYyOTM3Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSIyMDAiIHJ4PSIxMCIgZmlsbD0iIzM3NDE1MSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxMjAiIHI9IjMwIiBmaWxsPSIjNjM2NkYxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTMwIiBmaWxsPSIjRjlGQUZCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj5WSU5EIEVkaXRvcjwvdGV4dD4KPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZpbGw9IiM5Q0EzQUYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCI+UHJvZmVzc2lvbmFsIHJpY2ggdGV4dCBlZGl0aW5nPC90ZXh0Pgo8cmVjdCB4PSIyMDAiIHk9IjE4MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIvPgo8cmVjdCB4PSIyMDAiIHk9IjE5NSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIgb3BhY2l0eT0iMC42Ii8+CjxyZWN0IHg9IjIwMCIgeT0iMjEwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjMTBCOTgxIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+" alt="VIND Editor Interface Preview" />
   
   <p style="text-align: center"><em>↑ Learn more about our powerful editing features</em></p>
   
@@ -185,14 +178,6 @@ const InputField: React.FC<InputFieldProps> = ({
     }
   }, [showDownloadMenu]);
 
-  // Focus file name input when editing starts
-  useEffect(() => {
-    if (isEditingFileName && fileNameInputRef.current) {
-      fileNameInputRef.current.focus();
-      fileNameInputRef.current.select();
-    }
-  }, [isEditingFileName]);
-
   const downloadAsWord = () => {
     if (!editor) return;
     const htmlContent = editor.getHTML();
@@ -201,7 +186,7 @@ const InputField: React.FC<InputFieldProps> = ({
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
           <meta charset="utf-8">
-          <title>${fileName}</title>
+          <title>Document</title>
           <!--[if gte mso 9]>
           <xml>
             <w:WordDocument>
@@ -240,7 +225,7 @@ const InputField: React.FC<InputFieldProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${fileName.replace(/\.[^/.]+$/, "")}.doc`;
+    a.download = "document.doc";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -325,6 +310,7 @@ const InputField: React.FC<InputFieldProps> = ({
   // Formatting helpers
   const isActive = (type: string, opts?: Record<string, unknown>) =>
     editor ? editor.isActive(type, opts) : false;
+
   return (
     <div className="w-full h-full border border-[#252525] flex flex-col bg-[#131313]">
       {/* Hidden file input for images */}
@@ -337,34 +323,29 @@ const InputField: React.FC<InputFieldProps> = ({
       />
 
       <div className="flex items-center justify-between p-3 gap-2">
-        {/* Left: File Name */}
-        <div className="flex items-center gap-2 min-w-[220px]">
-        
-
-          {/* Download Menu */}
-          <div className="relative" ref={downloadMenuRef}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDownloadMenu(!showDownloadMenu);
-              }}
-              className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
-              title="Download options"
-            >
-              <ThreeDotsIcon />
-            </button>
-            {showDownloadMenu && (
-              <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[180px]">
-                <button
-                  onClick={downloadAsWord}
-                  className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
-                >
-                  <DownloadIcon />
-                  Download as Word
-                </button>
-              </div>
-            )}
-          </div>
+        {/* Left: Download Menu */}
+        <div className="relative" ref={downloadMenuRef}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDownloadMenu(!showDownloadMenu);
+            }}
+            className="p-2 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
+            title="Download options"
+          >
+            <ThreeDotsIcon />
+          </button>
+          {showDownloadMenu && (
+            <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[180px]">
+              <button
+                onClick={downloadAsWord}
+                className="w-full px-4 py-3 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
+              >
+                <DownloadIcon />
+                Download as Word
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Center: Toolbar Buttons */}

@@ -10,23 +10,19 @@ interface Commit {
 
 interface CommitFieldProps {
   currentContent: string;
-  fileName: string;
   onCommitSelect: (content: string) => void;
 }
 
 // In-memory storage to persist commits across component re-renders
-const commitStorage: { [key: string]: Commit[] } = {};
+const commitStorage: Commit[] = [];
 
 const CommitField: React.FC<CommitFieldProps> = ({
   currentContent,
-  fileName,
   onCommitSelect,
 }) => {
-  const storageKey = `commits_${fileName}`;
-
   // Load commits from in-memory storage on mount
   const [commits, setCommits] = useState<Commit[]>(() => {
-    return commitStorage[storageKey] || [];
+    return [...commitStorage];
   });
 
   const [commitMessage, setCommitMessage] = useState("");
@@ -34,8 +30,9 @@ const CommitField: React.FC<CommitFieldProps> = ({
 
   // Save commits to in-memory storage whenever they change
   useEffect(() => {
-    commitStorage[storageKey] = commits;
-  }, [commits, storageKey]);
+    commitStorage.length = 0;
+    commitStorage.push(...commits);
+  }, [commits]);
 
   const handleCommit = () => {
     if (!commitMessage.trim()) return;
@@ -122,9 +119,6 @@ const CommitField: React.FC<CommitFieldProps> = ({
                       </div>
                       <div className="text-gray-400 text-xs mt-0.5">
                          {commit.timestamp}
-                      </div>
-                      <div className="text-gray-500 text-xs mt-1">
-                        {fileName}
                       </div>
                     </div>
                   </div>

@@ -7,10 +7,8 @@ import CommitField from "@/components/CommitField";
 import { VscGitCommit } from "react-icons/vsc";
 import Image from "next/image";
 
-
 const Page = () => {
   const [fileContent, setFileContent] = useState("");
-  const [fileName, setFileName] = useState("");
   const [commitfield, setCommitfield] = useState(true);
 
   const handleInputChange = (text: string) => {
@@ -21,10 +19,6 @@ const Page = () => {
     setFileContent(content);
   };
 
-  const handleFileNameChange = (name: string) => {
-    setFileName(name);
-  };
-
   return (
     <div className="h-screen flex flex-col">
       <div className="flex flex-row flex-1 overflow-hidden">
@@ -32,8 +26,6 @@ const Page = () => {
           <InputField 
             value={fileContent} 
             onChange={handleInputChange}
-            fileName={fileName}
-            /* onFileNameChange={handleFileNameChange} */
           />
         </div>
         {/* Commit Field */}
@@ -41,7 +33,6 @@ const Page = () => {
           {commitfield ? (
             <CommitField
               currentContent={fileContent}
-              fileName={fileName}
               onCommitSelect={handleCommitSelect}
             />
           ) : (
