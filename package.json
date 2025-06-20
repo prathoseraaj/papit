@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@tiptap/extension-color": "^2.14.0",
+    "@tiptap/extension-highlight": "^2.14.0",
+    "@tiptap/extension-image": "^2.14.0",
     "@tiptap/extension-link": "^2.14.0",
     "@tiptap/extension-placeholder": "^2.14.0",
     "@tiptap/extension-text-align": "^2.14.0",
