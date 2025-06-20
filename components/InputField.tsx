@@ -53,7 +53,10 @@ const InputField: React.FC<InputFieldProps> = ({
     <li><strong>Rich media support</strong> with drag & drop functionality.</li>
   </ul>
   
-  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUYyOTM3Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSIyMDAiIHJ4PSIxMCIgZmlsbD0iIzM3NDE1MSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxMjAiIHI9IjMwIiBmaWxsPSIjNjM2NkYxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTMwIiBmaWxsPSIjRjlGQUZCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj5WSU5EIEVkaXRvcjwvdGV4dD4KPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZpbGw9IiM5Q0EzQUYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCI+UHJvZmVzc2lvbmFsIHJpY2ggdGV4dCBlZGl0aW5nPC90ZXh0Pgo8cmVjdCB4PSIyMDAiIHk9IjE4MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIvPgo8cmVjdCB4PSIyMDAiIHk9IjE5NSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIgb3BhY2l0eT0iMC42Ii8+CjxyZWN0IHg9IjIwMCIgeT0iMjEwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjMTBCOTgxIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+" alt="VIND Editor Interface Preview" />
+  <img src="data:image/svg+xml;base64,PHN2ZyB3  // Update fileName when prop changes
+  useEffect(() => {
+    setCurrentFileName(fileName);
+  }, [fileName]);aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMUYyOTM3Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSIyMDAiIHJ4PSIxMCIgZmlsbD0iIzM3NDE1MSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxMjAiIHI9IjMwIiBmaWxsPSIjNjM2NkYxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTMwIiBmaWxsPSIjRjlGQUZCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj5WSU5EIEVkaXRvcjwvdGV4dD4KPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZpbGw9IiM5Q0EzQUYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCI+UHJvZmVzc2lvbmFsIHJpY2ggdGV4dCBlZGl0aW5nPC90ZXh0Pgo8cmVjdCB4PSIyMDAiIHk9IjE4MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIvPgo8cmVjdCB4PSIyMDAiIHk9IjE5NSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzEwQjk4MSIgb3BhY2l0eT0iMC42Ii8+CjxyZWN0IHg9IjIwMCIgeT0iMjEwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjMTBCOTgxIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+" alt="VIND Editor Interface Preview" />
   
   <p style="text-align: center"><em>↑ Learn more about our powerful editing features</em></p>
   
@@ -172,11 +175,6 @@ const InputField: React.FC<InputFieldProps> = ({
     }
   }, [value, editor]);
 
-  // Update fileName when prop changes
-  useEffect(() => {
-    setCurrentFileName(fileName);
-  }, [fileName]);
-
   // Close download menu on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -202,19 +200,6 @@ const InputField: React.FC<InputFieldProps> = ({
     }
   }, [isEditingFileName]);
 
-  const handleFileNameChange = (newName: string) => {
-    setCurrentFileName(newName);
-    onFileNameChange?.(newName);
-  };
-
-  const handleFileNameSubmit = () => {
-    setIsEditingFileName(false);
-    if (currentFileName.trim()) {
-      handleFileNameChange(currentFileName.trim());
-    } else {
-      setCurrentFileName(fileName);
-    }
-  };
 
   const downloadAsWord = () => {
     if (!editor) return;
