@@ -1,15 +1,22 @@
 "use client";
-
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import Chatbot from "@/components/Chatbot";
 import CommitField from "@/components/CommitField";
 import { VscGitCommit } from "react-icons/vsc";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
   const [fileContent, setFileContent] = useState("");
   const [commitfield, setCommitfield] = useState(true);
+  const [userName, setUserName] = useState<string | undefined>(undefined);
+  const router = useRouter();
+
+  const handleStartCollab = () => {
+    const randomRoom = Math.random().toString(36).substr(2, 9);
+    router.push(`/collaborative/${randomRoom}`);
+  };
 
   const handleInputChange = (text: string) => {
     setFileContent(text);
@@ -23,10 +30,16 @@ const Page = () => {
     <div className="h-screen flex flex-col">
       <div className="flex flex-row flex-1 overflow-hidden">
         <div className="flex h-full w-[80%]">
-          <InputField 
-            value={fileContent} 
-            onChange={handleInputChange}
-          />
+          <div className="w-full">
+            <InputField
+              value={fileContent}
+              onChange={handleInputChange}
+              userName={userName}
+              setUserName={setUserName}
+              onStartCollab={handleStartCollab}
+              isCollab={false}
+            />
+          </div>
         </div>
         {/* Commit Field */}
         <div className="w-[20%] border-l" style={{ borderColor: "#252525" }}>
