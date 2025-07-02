@@ -3,12 +3,12 @@
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
+import Link from "next/link";
 
 export default function CollaborativeRoomPage() {
   const params = useParams<{ room: string }>();
   const room = params?.room;
   const search = useSearchParams();
-  const router = useRouter();
   const [content, setContent] = useState("");
   const [userName, setUserName] = useState<string | undefined>(
     search?.get("name") || undefined
@@ -23,12 +23,12 @@ export default function CollaborativeRoomPage() {
         <h1 className="text-white text-xl font-bold">
           Collaborative Room: <span className="text-[#4ECDC4]">{room}</span>
         </h1>
-        <a
+        <Link
           href="/"
           className="bg-[#4ECDC4] px-4 py-2 rounded text-gray-900 font-semibold hover:bg-[#38b7a7] transition-colors"
         >
           Back to Single Editor
-        </a>
+        </Link>
       </div>
       <div className="mx-auto" style={{ maxWidth: 1200 }}>
         <InputField

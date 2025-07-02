@@ -31,7 +31,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     io.on("connection", (socket) => {
-      let room = (socket.handshake.query.room as string) || "default";
+      const room = (socket.handshake.query.room as string) || "default";
       let user: User;
       try {
         user = JSON.parse(socket.handshake.query.user as string);
@@ -41,6 +41,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
           name: "Anonymous",
           color: "#888",
         };
+        console.log(e);
       }
 
       socket.join(room);

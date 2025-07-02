@@ -101,7 +101,6 @@ const InputField: React.FC<InputFieldProps> = ({
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const isRemoteUpdate = useRef(false);
   const editorRef = useRef<any>(null);
-  const router = useRouter();
   const room =
     typeof window !== "undefined"
       ? roomId
