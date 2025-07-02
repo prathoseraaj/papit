@@ -1,11 +1,16 @@
 import { Server as IOServer } from "socket.io";
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { Socket as NetSocket } from "net";
+import type { Server as HTTPServer } from "http";
 
 // Types
 type Message = { content: string; userId: string };
 type CursorUpdate = { userId: string; cursor: { from: number; to: number } };
 type User = { id: string; name: string; color: string; cursor?: { from: number; to: number } };
 
+interface SocketWithIO extends NetSocket {
+  server: HTTPServer & { io?: IOServer };
+}
 // In-memory state
 const roomDocs: Record<string, string> = {};
 const roomUsers: Record<string, User[]> = {};

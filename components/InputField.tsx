@@ -16,8 +16,8 @@ import Superscript from "@tiptap/extension-superscript";
 import Subscript from "@tiptap/extension-subscript";
 import Typography from "@tiptap/extension-typography";
 import { io, Socket } from "socket.io-client";
-import { useRouter } from "next/navigation";
 import { CollaborativeCursor } from "./CollaborativeCursor";
+import type { Editor } from "@tiptap/core";
 
 export interface User {
   id: string;
@@ -94,13 +94,14 @@ const InputField: React.FC<InputFieldProps> = ({
   const [connectedUsers, setConnectedUsers] = useState<User[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [initialContent, setInitialContent] = useState<string | null>(null);
+  
 
   const collaboratorMenuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const isRemoteUpdate = useRef(false);
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<Editor | null>(null);
   const room =
     typeof window !== "undefined"
       ? roomId
