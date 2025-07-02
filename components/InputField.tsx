@@ -306,6 +306,7 @@ const editor = useEditor({
     }),
   ],
   content: value || defaultContent,
+  immediatelyRender: false,
   onCreate({ editor }) {
     editorRef.current = editor;
   },
