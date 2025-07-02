@@ -5,7 +5,7 @@ let socket: Socket | null = null;
 
 export function getSocket(room: string, user: User) {
   if (!socket) {
-    socket = io({
+    socket = io("https://vind-backend.onrender.com",{
       path: "/api/socket/socket",
       query: { room, user: JSON.stringify(user) },
     });

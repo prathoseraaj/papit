@@ -137,7 +137,7 @@ const InputField: React.FC<InputFieldProps> = ({
     if (!isCollab || !currentUser) return;
     if (typeof window === "undefined") return;
     // ---- FIXED: use only the path option, not the first argument ----
-    const socket = io({
+    const socket = io("https://vind-backend.onrender.com",{
       path: "/api/socket",
       query: {
         room,
