@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams} from "next/navigation";
 import React, { useState } from "react";
 import InputField from "@/components/InputField";
 import Link from "next/link";

@@ -8,9 +8,14 @@ type Message = { content: string; userId: string };
 type CursorUpdate = { userId: string; cursor: { from: number; to: number } };
 type User = { id: string; name: string; color: string; cursor?: { from: number; to: number } };
 
-interface SocketWithIO extends NetSocket {
-  server: HTTPServer & { io?: IOServer };
+// Extending socket/server types for res.socket
+interface ServerWithIO extends HTTPServer {
+  io?: IOServer;
 }
+interface SocketWithIO extends NetSocket {
+  server: ServerWithIO;
+}
+
 // In-memory state
 const roomDocs: Record<string, string> = {};
 const roomUsers: Record<string, User[]> = {};
@@ -29,8 +34,9 @@ const getDefaultContent = () => `<h2>Getting Started</h2>
 </ul>`;
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!(res.socket as any).server.io) {
-    const io = new IOServer((res.socket as any).server, {
+  const socketWithIO = res.socket as SocketWithIO;
+  if (!socketWithIO.server.io) {
+    const io = new IOServer(socketWithIO.server, {
       path: "/api/socket",
       cors: { origin: "*", methods: ["GET", "POST"] },
     });
@@ -40,7 +46,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       let user: User;
       try {
         user = JSON.parse(socket.handshake.query.user as string);
-      } catch (e) {
+      } catch (e: unknown) {
         user = {
           id: Math.random().toString(36).substr(2, 9),
           name: "Anonymous",
@@ -83,9 +89,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         roomUsers[room] = (roomUsers[room] || []).filter((u) => u.id !== user.id);
         io.in(room).emit("users-updated", roomUsers[room]);
       });
+
+      // Handle socket errors
+      socket.on("connect_error", (error: unknown) => {
+        console.error("Socket connection error:", error);
+      });
     });
 
-    (res.socket as any).server.io = io;
+    socketWithIO.server.io = io;
   }
   res.end();
 }
