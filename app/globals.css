@@ -42,3 +42,15 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;     /* Firefox */
 }
+
+.collab-cursor {
+  display: inline-block;
+  width: 2px;
+  background: none;
+  position: relative;
+  vertical-align: text-top;
+  z-index: 10;
+}
+.collab-cursor-label {
+  pointer-events: none;
+}
