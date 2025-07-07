@@ -1,8 +1,8 @@
-# Vind
+# Papit
 
 [![Next.js](https://img.shields.io/badge/next.js-15.0.0-black)](https://nextjs.org/)
 
-Vind is a web-based file editor application for content writters and content creators featuring file management and a commit history panel. The project is **still under development**.
+Papit is a web-based file editor application for content writters and content creators featuring file management and a commit history panel. The project is **still under development**.
 
 ## Features
 
@@ -19,7 +19,7 @@ Vind is a web-based file editor application for content writters and content cre
   - AI-powered assistant to help with code and workflow questions.
 
 **Note:**  
-Vind does **not** use Node.js, Express, or Python for the backend. All deployment and server requirements are managed via Next.js, making it simple and efficient to deploy.
+Papit does **not** use Node.js, Express, or Python for the backend. All deployment and server requirements are managed via Next.js, making it simple and efficient to deploy.
 
 
 ## Tech Stack
@@ -38,8 +38,8 @@ Vind does **not** use Node.js, Express, or Python for the backend. All deploymen
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/prathoseraaj/vind.git
-   cd vind
+   git clone https://github.com/prathoseraaj/Papit.git
+   cd Papit
    ```
 
 2. **Install dependencies:**
