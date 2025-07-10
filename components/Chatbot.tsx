@@ -49,7 +49,7 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="flex mt-3 flex-col h-[92vh] border-l border-[#252525] bg-[#0f0f0f]">
+    <div className="flex  mt-3 flex-col h-[98vh] border-l border-[#252525] bg-[#0f0f0f]">
       {/* Header */}
       <div className="flex group items-center px-4 py-2 border-b border-[#252525]">
         <Image src="/image.png" alt="Gemini logo" height={25} width={25} />
