@@ -1,5 +1,7 @@
 "use client";
 
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import Image from "next/image";
 import React, { useState, useRef, useEffect } from "react";
 import { LuSendHorizontal } from "react-icons/lu";
@@ -11,6 +13,14 @@ type Message = {
 };
 
 const Chatbot = () => {
+
+  useGSAP(()=>{
+    gsap.to('#chatbot_title',{
+      opacity:1,
+      duration:0.5,
+    })
+  })
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -53,7 +63,7 @@ const Chatbot = () => {
       {/* Header */}
       <div className="flex group items-center px-4 py-2 border-b border-[#252525]">
         <Image src="/image.png" alt="Gemini logo" height={25} width={25} />
-        <h1 className="ml-2 text-white text-sm opacity-1  font-semibold invisible group-hover:visible group-hover:opacity-100 group-hover:scale-100 transition duration-1000 ">BroDoc</h1>
+        <h1 id="chatbot_title" className="ml-2 text-white text-sm opacity-0 font-semibold  scale-100 transition duration-1000 ">BroDoc</h1>
       </div>
 
       {/* Message Area */}
