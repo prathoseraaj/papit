@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import React, { useState, useEffect, useRef } from "react";
 import { VscGitCommit, VscChevronDown, VscChevronRight } from "react-icons/vsc";
 
 interface Commit {
@@ -20,6 +22,15 @@ const CommitField: React.FC<CommitFieldProps> = ({
   currentContent,
   onCommitSelect,
 }) => {
+  const commitListRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    gsap.to("#title", {
+      opacity: 1,
+      duration: 0.5,
+    });
+  });
+
   // Load commits from in-memory storage on mount
   const [commits, setCommits] = useState<Commit[]>(() => {
     return [...commitStorage];
@@ -33,6 +44,63 @@ const CommitField: React.FC<CommitFieldProps> = ({
     commitStorage.length = 0;
     commitStorage.push(...commits);
   }, [commits]);
+
+  // Animate commit items when they change or when expanded/collapsed
+  useGSAP(() => {
+    if (commitListRef.current && isExpanded) {
+      const commitItems = commitListRef.current.querySelectorAll('.commit-item');
+      if (commitItems.length > 0) {
+        gsap.fromTo(commitItems, 
+          {
+            x: -30,
+            opacity: 0,
+            scale: 0.9
+          },
+          {
+            x: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.4,
+            stagger: 0.08,
+            ease: "power2.out"
+          }
+        );
+
+        // Animate the connection lines
+        const lines = commitListRef.current.querySelectorAll('.commit-line');
+        gsap.fromTo(lines,
+          {
+            scaleY: 0,
+            transformOrigin: "top"
+          },
+          {
+            scaleY: 1,
+            duration: 0.3,
+            stagger: 0.05,
+            ease: "power2.out",
+            delay: 0.2
+          }
+        );
+
+        // Animate commit dots
+        const dots = commitListRef.current.querySelectorAll('.commit-dot');
+        gsap.fromTo(dots,
+          {
+            scale: 0,
+            rotation: 180
+          },
+          {
+            scale: 1,
+            rotation: 0,
+            duration: 0.3,
+            stagger: 0.05,
+            ease: "back.out(1.7)",
+            delay: 0.1
+          }
+        );
+      }
+    }
+  }, [commits.length, isExpanded]);
 
   const handleCommit = () => {
     if (!commitMessage.trim()) return;
@@ -50,14 +118,63 @@ const CommitField: React.FC<CommitFieldProps> = ({
 
   const handleCommitClick = (commit: Commit) => {
     onCommitSelect(commit.content);
+    
+    // Animate the clicked commit
+    gsap.to(`#commit-${commit.id}`, {
+      scale: 1.05,
+      duration: 0.15,
+      yoyo: true,
+      repeat: 1,
+      ease: "power2.inOut"
+    });
+  };
+
+  // Hover animations for commit items
+  const handleCommitHover = (e: React.MouseEvent, isEntering: boolean) => {
+    const target = e.currentTarget;
+    const dot = target.querySelector('.commit-dot');
+    
+    if (isEntering) {
+      gsap.to(target, {
+        x: 8,
+        duration: 0.2,
+        ease: "power2.out"
+      });
+      gsap.to(dot, {
+        scale: 1.3,
+        boxShadow: "0 0 12px rgba(251, 146, 60, 0.8)",
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    } else {
+      gsap.to(target, {
+        x: 0,
+        duration: 0.2,
+        ease: "power2.out"
+      });
+      gsap.to(dot, {
+        scale: 1,
+        boxShadow: "none",
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    }
   };
 
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header */}
-      <div className="p-3 border-b flex items-center gap-2" style={{ borderColor: "#2d2d30" }}>
+      <div
+        className="p-3 border-b flex items-center gap-2"
+        style={{ borderColor: "#2d2d30" }}
+      >
         <VscGitCommit className="text-orange-400" size={16} />
-        <span className="text-white text-sm font-medium">Source Control</span>
+        <span
+          id="title"
+          className="opacity-0 scale-100 transition text-white text-sm font-medium"
+        >
+          Source Control
+        </span>
       </div>
 
       {/* Commit Input */}
@@ -90,27 +207,34 @@ const CommitField: React.FC<CommitFieldProps> = ({
       <div className="flex-1 overflow-auto">
         {commits.length > 0 && (
           <div className="p-2">
-            <div 
+            <div
               className="flex items-center gap-1 p-1 hover:bg-gray-700/50 cursor-pointer rounded text-sm text-gray-300"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? <VscChevronDown size={14} /> : <VscChevronRight size={14} />}
+              {isExpanded ? (
+                <VscChevronDown size={14} />
+              ) : (
+                <VscChevronRight size={14} />
+              )}
               <VscGitCommit className="text-orange-400" size={14} />
               <span>COMMITS ({commits.length})</span>
             </div>
 
             {isExpanded && (
-              <div className="ml-4 mt-1">
+              <div ref={commitListRef} className="ml-4 mt-1">
                 {commits.map((commit, index) => (
                   <div
                     key={commit.id}
-                    className="group flex items-start gap-2 p-2 hover:bg-gray-700/30 cursor-pointer rounded transition-colors"
+                    id={`commit-${commit.id}`}
+                    className="commit-item group flex items-start gap-2 p-2 hover:bg-gray-700/30 cursor-pointer rounded transition-colors"
                     onClick={() => handleCommitClick(commit)}
+                    onMouseEnter={(e) => handleCommitHover(e, true)}
+                    onMouseLeave={(e) => handleCommitHover(e, false)}
                   >
                     <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 bg-orange-400 rounded-full mt-1"></div>
+                      <div className="commit-dot w-2 h-2 bg-orange-400 rounded-full mt-1"></div>
                       {index < commits.length - 1 && (
-                        <div className="w-0.5 h-8 bg-gray-600 mt-1"></div>
+                        <div className="commit-line w-0.5 h-8 bg-gray-600 mt-1"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -118,7 +242,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
                         {commit.message}
                       </div>
                       <div className="text-gray-400 text-xs mt-0.5">
-                         {commit.timestamp}
+                        {commit.timestamp}
                       </div>
                     </div>
                   </div>
@@ -138,7 +262,10 @@ const CommitField: React.FC<CommitFieldProps> = ({
       </div>
 
       {/* Status Bar */}
-      <div className="p-2 border-t text-xs text-gray-400 flex items-center gap-2" style={{ borderColor: "#2d2d30" }}>
+      <div
+        className="p-2 border-t text-xs text-gray-400 flex items-center gap-2"
+        style={{ borderColor: "#2d2d30" }}
+      >
         <VscGitCommit size={12} />
         <span>{commits.length} commits</span>
       </div>
