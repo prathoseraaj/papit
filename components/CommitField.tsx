@@ -204,7 +204,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
       </div>
 
       {/* Commits Tree */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {commits.length > 0 && (
           <div className="p-2">
             <div
@@ -226,7 +226,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
                   <div
                     key={commit.id}
                     id={`commit-${commit.id}`}
-                    className="commit-item group flex items-start gap-2 p-2 hover:bg-gray-700/30 cursor-pointer rounded transition-colors"
+                    className="commit-item group flex items-start gap-2 p-2 hover:bg-gray-700/30 cursor-pointer rounded transition-colors w-full"
                     onClick={() => handleCommitClick(commit)}
                     onMouseEnter={(e) => handleCommitHover(e, true)}
                     onMouseLeave={(e) => handleCommitHover(e, false)}
