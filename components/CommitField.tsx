@@ -162,7 +162,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col bg-[#0f0f0f]">
       {/* Header */}
       <div
         className="p-3 border-b flex items-center gap-2"
