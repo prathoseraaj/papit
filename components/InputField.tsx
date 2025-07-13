@@ -777,6 +777,8 @@ const editor = useEditor({
               lineHeight: "1.7",
               paddingLeft: "4rem",
               paddingRight: "4rem",
+              color: "#f8fafc",
+              background: "#131313",
             }}
           >
             <EditorContent editor={editor} />
