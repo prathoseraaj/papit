@@ -194,7 +194,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
             placeholder="Message (press Ctrl+Enter to commit)"
             value={commitMessage}
             onChange={(e) => setCommitMessage(e.target.value)}
-            className="w-full p-2 bg-transparent border rounded resize-none outline-none text-white text-sm h-16"
+            className="w-full p-2 bg-transparent border rounded resize-none outline-none text-white text-sm h-16 overflow-hidden"
             style={{ borderColor: "#3c3c3c", backgroundColor: "#2d2d30" }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && e.ctrlKey) {
