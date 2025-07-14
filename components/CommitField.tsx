@@ -45,6 +45,16 @@ const CommitField: React.FC<CommitFieldProps> = ({
     commitStorage.push(...commits);
   }, [commits]);
 
+  // Check if there are changes to commit
+  const hasChanges = () => {
+    if (commits.length === 0) return true; // First commit is always allowed
+    const lastCommit = commits[0];
+    return lastCommit.content !== currentContent;
+  };
+
+  // Check if commit is allowed (has message and has changes)
+  const canCommit = commitMessage.trim() && hasChanges();
+
   // Animate commit items when they change or when expanded/collapsed
   useGSAP(() => {
     if (commitListRef.current && isExpanded) {
@@ -103,7 +113,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
   }, [commits.length, isExpanded]);
 
   const handleCommit = () => {
-    if (!commitMessage.trim()) return;
+    if (!canCommit) return;
 
     const newCommit: Commit = {
       id: Math.random().toString(36).substring(2, 9),
@@ -195,11 +205,20 @@ const CommitField: React.FC<CommitFieldProps> = ({
           />
           <button
             onClick={handleCommit}
-            disabled={!commitMessage.trim()}
+            disabled={!canCommit}
             className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title={!hasChanges() ? "No changes to commit" : ""}
           >
             ✓ Commit
           </button>
+          
+          {/* Status indicator */}
+          {!hasChanges() && commits.length > 0 && (
+            <div className="text-xs text-gray-500 flex items-center gap-1">
+              <span>•</span>
+              <span>No changes to commit</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -268,6 +287,12 @@ const CommitField: React.FC<CommitFieldProps> = ({
       >
         <VscGitCommit size={12} />
         <span>{commits.length} commits</span>
+        {hasChanges() && commits.length > 0 && (
+          <>
+            <span>•</span>
+            <span className="text-orange-400">Changes pending</span>
+          </>
+        )}
       </div>
     </div>
   );
