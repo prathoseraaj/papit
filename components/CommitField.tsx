@@ -58,13 +58,15 @@ const CommitField: React.FC<CommitFieldProps> = ({
   // Animate commit items when they change or when expanded/collapsed
   useGSAP(() => {
     if (commitListRef.current && isExpanded) {
-      const commitItems = commitListRef.current.querySelectorAll('.commit-item');
+      const commitItems =
+        commitListRef.current.querySelectorAll(".commit-item");
       if (commitItems.length > 0) {
-        gsap.fromTo(commitItems, 
+        gsap.fromTo(
+          commitItems,
           {
             x: -30,
             opacity: 0,
-            scale: 0.9
+            scale: 0.9,
           },
           {
             x: 0,
@@ -72,32 +74,34 @@ const CommitField: React.FC<CommitFieldProps> = ({
             scale: 1,
             duration: 0.4,
             stagger: 0.08,
-            ease: "power2.out"
+            ease: "power2.out",
           }
         );
 
         // Animate the connection lines
-        const lines = commitListRef.current.querySelectorAll('.commit-line');
-        gsap.fromTo(lines,
+        const lines = commitListRef.current.querySelectorAll(".commit-line");
+        gsap.fromTo(
+          lines,
           {
             scaleY: 0,
-            transformOrigin: "top"
+            transformOrigin: "top",
           },
           {
             scaleY: 1,
             duration: 0.3,
             stagger: 0.05,
             ease: "power2.out",
-            delay: 0.2
+            delay: 0.2,
           }
         );
 
         // Animate commit dots
-        const dots = commitListRef.current.querySelectorAll('.commit-dot');
-        gsap.fromTo(dots,
+        const dots = commitListRef.current.querySelectorAll(".commit-dot");
+        gsap.fromTo(
+          dots,
           {
             scale: 0,
-            rotation: 180
+            rotation: 180,
           },
           {
             scale: 1,
@@ -105,7 +109,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
             duration: 0.3,
             stagger: 0.05,
             ease: "back.out(1.7)",
-            delay: 0.1
+            delay: 0.1,
           }
         );
       }
@@ -128,45 +132,45 @@ const CommitField: React.FC<CommitFieldProps> = ({
 
   const handleCommitClick = (commit: Commit) => {
     onCommitSelect(commit.content);
-    
+
     // Animate the clicked commit
     gsap.to(`#commit-${commit.id}`, {
       scale: 1.05,
       duration: 0.15,
       yoyo: true,
       repeat: 1,
-      ease: "power2.inOut"
+      ease: "power2.inOut",
     });
   };
 
   // Hover animations for commit items
   const handleCommitHover = (e: React.MouseEvent, isEntering: boolean) => {
     const target = e.currentTarget;
-    const dot = target.querySelector('.commit-dot');
-    
+    const dot = target.querySelector(".commit-dot");
+
     if (isEntering) {
       gsap.to(target, {
         x: 8,
         duration: 0.2,
-        ease: "power2.out"
+        ease: "power2.out",
       });
       gsap.to(dot, {
         scale: 1.3,
         boxShadow: "0 0 12px rgba(251, 146, 60, 0.8)",
         duration: 0.2,
-        ease: "power2.out"
+        ease: "power2.out",
       });
     } else {
       gsap.to(target, {
         x: 0,
         duration: 0.2,
-        ease: "power2.out"
+        ease: "power2.out",
       });
       gsap.to(dot, {
         scale: 1,
         boxShadow: "none",
         duration: 0.2,
-        ease: "power2.out"
+        ease: "power2.out",
       });
     }
   };
@@ -211,7 +215,7 @@ const CommitField: React.FC<CommitFieldProps> = ({
           >
             ✓ Commit
           </button>
-          
+
           {/* Status indicator */}
           {!hasChanges() && commits.length > 0 && (
             <div className="text-xs text-gray-500 flex items-center gap-1">
