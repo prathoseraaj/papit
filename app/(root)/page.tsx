@@ -7,6 +7,7 @@ import Chatbot from "@/components/Chatbot";
 import CommitField from "@/components/CommitField";
 import { VscGitCommit } from "react-icons/vsc";
 import Image from "next/image";
+import PapitLoader from "@/components/PapitLoader";
 
 const Page = () => {
   const [fileContent, setFileContent] = useState("");
@@ -70,16 +71,10 @@ const Page = () => {
   };
 
   // Show loading spinner while checking authentication
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+
+if (loading) {
+  return <PapitLoader/>;
+}
 
   return (
     <div className="h-screen flex flex-col">
