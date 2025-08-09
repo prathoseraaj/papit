@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { supabase } from '@/libs/supabaseClient'
 import { AuthError } from '@supabase/supabase-js'
 
-export default function page() {
+export default function Page() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
