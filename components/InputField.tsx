@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { supabase } from '@/libs/supabaseClient'
+import { useRouter } from 'next/navigation'
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -101,6 +103,7 @@ const InputField: React.FC<InputFieldProps> = ({
   const socketRef = useRef<Socket | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const isRemoteUpdate = useRef(false);
+  const router = useRouter()
   const editorRef = useRef<Editor | null>(null);
   const room =
     typeof window !== "undefined"
@@ -520,75 +523,109 @@ const editor = useEditor({
 
       <div className="flex items-center justify-between p-3 gap-2">
         {/* Left: Collaboration Indicator */}
-        <div className="relative" ref={collaboratorMenuRef}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCollaboratorMenu(!showCollaboratorMenu);
-            }}
-            className="flex items-center gap-2 p-2 rounded hover:bg-gray-700 transition-colors text-gray-400 hover:text-white"
-            title="Collaboration"
-          >
-            <div
-              className={`w-3 h-3 rounded-full ${
-                isCollab && isConnected ? "bg-green-500" : "bg-red-500"
-              } animate-pulse`}
-            />
-            <span className="text-sm">
-              {isCollab ? connectedUsers.length : 0} online
-            </span>
-          </button>
+<div className="relative" ref={collaboratorMenuRef}>
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowCollaboratorMenu(!showCollaboratorMenu);
+    }}
+    className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-700 transition-colors"
+    title="Profile Menu"
+  >
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+      {userName ? userName.charAt(0).toUpperCase() : 'U'}
+    </div>
+    {isCollab && (
+      <div className="flex items-center gap-1">
+        <div
+          className={`w-2 h-2 rounded-full ${
+            isConnected ? "bg-green-500" : "bg-red-500"
+          } animate-pulse`}
+        />
+        <span className="text-sm text-gray-400">
+          {connectedUsers.length} online
+        </span>
+      </div>
+    )}
+  </button>
 
           {showCollaboratorMenu && (
-            <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[280px]">
-              <div className="px-4 py-2 border-b border-gray-600">
-                <h3 className="text-white text-sm font-medium">
-                  Collaborators
-                </h3>
+  <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[200px]">
+    <div className="px-4 py-2 border-b border-gray-600">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+          {userName ? userName.charAt(0).toUpperCase() : 'U'}
+        </div>
+        <div>
+          <div className="text-white text-sm font-medium">{userName || 'User'}</div>
+          <div className="text-gray-400 text-xs">Active now</div>
+        </div>
+      </div>
+    </div>
+    
+    <div className="py-1">
+      <button
+        onClick={() => {
+          setShowCollaboratorMenu(false);
+          // Add profile page navigation logic here
+          console.log('Navigate to profile');
+        }}
+        className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
+      >
+        <ProfileIcon />
+        Profile
+      </button>
+      
+      {!isCollab && (
+        <button
+          onClick={() => {
+            setShowCollaboratorMenu(false);
+            if (onStartCollab) onStartCollab();
+          }}
+          className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
+        >
+          <ShareIcon />
+          Start Collaboration
+        </button>
+      )}
+      
+      {isCollab && (
+        <div className="px-4 py-2">
+          <div className="text-xs text-gray-500 mb-2">Collaborators ({connectedUsers.length})</div>
+          <div className="max-h-24 overflow-y-auto space-y-1">
+            {userList.map((user) => (
+              <div key={user.id} className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: user.color }}
+                />
+                <span className="text-gray-300 text-xs">{user.displayName}</span>
               </div>
-              <div className="max-h-32 overflow-y-auto">
-                {isCollab ? (
-                  userList.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-gray-700"
-                    >
-                      <div
-                        className="w-4 h-4 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: user.color }}
-                      />
-                      <span className="text-gray-200 text-sm flex-1">
-                        {user.displayName}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-2 text-gray-400 text-sm">
-                    No collaborators yet.
-                  </div>
-                )}
-              </div>
-              <div className="border-t border-gray-600 mt-2 pt-2">
-                {!isCollab && (
-                  <button
-                    onClick={() => {
-                      setShowCollaboratorMenu(false);
-                      if (onStartCollab) onStartCollab();
-                    }}
-                    className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
-                  >
-                    <ShareIcon />
-                    Start Collaboration
-                  </button>
-                )}
-                {isCollab && (
-                  <div className="px-4 py-2 text-xs text-gray-500">
-                    Share this room URL to invite others.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <div className="border-t border-gray-600 mt-2 pt-2">
+        <button
+      onClick={async () => {
+        setShowCollaboratorMenu(false);
+        try {
+          await supabase.auth.signOut();
+          router.push('/signIn');
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      }}
+          className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-950/20 transition-colors flex items-center gap-3 text-sm"
+        >
+          <SignOutIcon />
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+)}
         </div>
 
         {/* Center: Toolbar Buttons */}
@@ -934,6 +971,24 @@ const AlignLeftIcon: React.FC = () => (
     <path
       fill="currentColor"
       d="M3 3h18v2H3zm0 4h12v2H3zm0 4h18v2H3zm0 4h12v2H3z"
+    />
+  </svg>
+);
+
+const ProfileIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+    />
+  </svg>
+);
+
+const SignOutIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
     />
   </svg>
 );

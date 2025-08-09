@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.54.0",
     "@tiptap/extension-color": "^2.14.0",
     "@tiptap/extension-highlight": "^2.14.0",
     "@tiptap/extension-image": "^2.14.0",
