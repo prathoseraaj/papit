@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { supabase } from '@/libs/supabaseClient'
 
-export default function Page() {
+export default function page() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
