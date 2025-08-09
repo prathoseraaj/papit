@@ -7,7 +7,7 @@ import { AuthError } from '@supabase/supabase-js'
 export default function Page() {
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
+    email: '',  
     password: ''
   })
   const [loading, setLoading] = useState(false)
