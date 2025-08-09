@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { supabase } from '@/libs/supabaseClient'
+import { AuthError } from '@supabase/supabase-js'
 
 export default function page() {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ export default function page() {
 
     try {
       // Sign up with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -43,8 +44,9 @@ export default function page() {
         // Optionally clear form
         setFormData({ username: '', email: '', password: '' })
       }
-    } catch (error: any) {
-      setMessage(`Error: ${error.message}`)
+    } catch (error: unknown) {
+      const authError = error as AuthError
+      setMessage(`Error: ${authError.message}`)
     } finally {
       setLoading(false)
     }

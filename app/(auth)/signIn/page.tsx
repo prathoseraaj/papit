@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { supabase } from '@/libs/supabaseClient'
+import { AuthError } from '@supabase/supabase-js'
 
 export default function page() {
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ export default function page() {
     setMessage('')
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
       })
@@ -36,8 +37,9 @@ export default function page() {
         // Redirect to dashboard or home page
         window.location.href = '/'
       }
-    } catch (error: any) {
-      setMessage(`Error: ${error.message}`)
+    } catch (error: unknown) {
+      const authError = error as AuthError
+      setMessage(`Error: ${authError.message}`)
     } finally {
       setLoading(false)
     }
@@ -56,8 +58,9 @@ export default function page() {
       } else {
         setMessage('Password reset email sent!')
       }
-    } catch (error: any) {
-      setMessage(`Error: ${error.message}`)
+    } catch (error: unknown) {
+      const authError = error as AuthError
+      setMessage(`Error: ${authError.message}`)
     }
   }
 
@@ -124,7 +127,7 @@ export default function page() {
 
         <div className="text-center mt-4">
           <span className="text-gray-400 text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a href="/signUp" className="text-white hover:underline">
               Sign up
             </a>
