@@ -2,12 +2,12 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div className="min-h-screen bg-black-800 text-white">
+    <div className="min-h-screen bg-gray-900 text-white">
       {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center">
-            <span className="text-black text-sm font-bold"></span>
+            <span className="text-gray-900 text-sm font-bold">◆</span>
           </div>
           <span className="text-xl font-semibold">Papit</span>
         </div>
@@ -16,7 +16,7 @@ const page = () => {
           <a href="#" className="text-gray-300 hover:text-white transition-colors">Features</a>
           <a href="#" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
           <a href="#" className="text-gray-300 hover:text-white transition-colors">Docs</a>
-          <a href="#" className="text-gray-300 hover:text-white transition-colors">Sign In</a>
+          <a href="/signin" className="text-gray-300 hover:text-white transition-colors">Sign In</a>
         </div>
       </nav>
 
@@ -75,7 +75,7 @@ const page = () => {
           <div className="text-center mt-6">
             <p className="text-gray-400">
               Already have an account?{' '}
-              <a href="#" className="text-white hover:underline">
+              <a href="/signIn" className="text-white hover:underline cursor-pointer">
                 Sign in
               </a>
             </p>

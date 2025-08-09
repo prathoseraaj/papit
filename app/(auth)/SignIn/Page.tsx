@@ -2,7 +2,7 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div className="min-h-screen bg-black-400 text-white flex items-center justify-center">
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
       <div className="w-full max-w-sm px-6">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">Sign in to Papit</h1>
@@ -37,6 +37,15 @@ const page = () => {
           <a href="#" className="text-gray-400 text-sm hover:text-white hover:underline transition-colors">
             Forgot your password?
           </a>
+        </div>
+
+        <div className="text-center mt-4">
+          <span className="text-gray-400 text-sm">
+            Don't have an account?{' '}
+            <a href="/signUp" className="text-white hover:underline">
+              Sign up
+            </a>
+          </span>
         </div>
       </div>
     </div>
