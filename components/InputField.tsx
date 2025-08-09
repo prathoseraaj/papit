@@ -114,13 +114,21 @@ const InputField: React.FC<InputFieldProps> = ({
 
   // Collab: Ask for name if not set
   useEffect(() => {
-    if (isCollab && !userName && setUserName) {
+  if (isCollab && !userName && setUserName) {
+    // Only prompt if we don't already have a username
+    const promptForName = () => {
       let inputName = prompt("Enter your name for collaboration:", "");
-      if (!inputName) inputName = "Anonymous";
-      setUserName(inputName);
-    }
-    // eslint-disable-next-line
-  }, [isCollab, userName]);
+      if (!inputName || inputName.trim() === "") {
+        inputName = "Anonymous";
+      }
+      setUserName(inputName.trim());
+    };
+    
+    // Use a small delay to ensure the component is fully mounted
+    const timer = setTimeout(promptForName, 100);
+    return () => clearTimeout(timer);
+  }
+}, [isCollab, setUserName]); 
 
   // Set current user with real name (not random)
   useEffect(() => {
