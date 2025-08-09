@@ -7,8 +7,9 @@ import { AuthError } from '@supabase/supabase-js'
 export default function Page() {
   const [formData, setFormData] = useState({
     username: '',
-    email: '',  
-    password: ''
+    email: '',
+    password: '',
+    confirmPassword: ''
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -24,6 +25,13 @@ export default function Page() {
     e.preventDefault()
     setLoading(true)
     setMessage('')
+
+    // Check if passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setMessage('Error: Passwords do not match')
+      setLoading(false)
+      return
+    }
 
     try {
       // Sign up with Supabase Auth
@@ -42,7 +50,7 @@ export default function Page() {
       } else {
         setMessage('Check your email for the confirmation link!')
         // Optionally clear form
-        setFormData({ username: '', email: '', password: '' })
+        setFormData({ username: '', email: '', password: '', confirmPassword: '' })
       }
     } catch (error: unknown) {
       const authError = error as AuthError
@@ -53,109 +61,94 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Navigation */}
-      <nav className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center">
-            <span className="text-gray-900 text-sm font-bold">◆</span>
-          </div>
-          <span className="text-xl font-semibold">Papit</span>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 backdrop-blur-3xl">
+      <div className="w-full max-w-md px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Create Account
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Join teams already working with Papit.
+          </p>
         </div>
-        
-        <div className="flex items-center space-x-8">
-          <a href="#" className="text-gray-300 hover:text-white transition-colors">Features</a>
-          <a href="#" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-          <a href="#" className="text-gray-300 hover:text-white transition-colors">Docs</a>
-          <a href="/signIn" className="text-gray-300 hover:text-white transition-colors">Sign In</a>
+
+        {message && (
+          <div className={`mb-6 p-3 rounded-lg text-sm text-center ${
+            message.includes('Error') 
+              ? 'bg-red-100 text-red-700' 
+              : 'bg-green-100 text-green-700'
+          }`}>
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSignUp} className="space-y-4">
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleInputChange}
+            placeholder="Username"
+            required
+            className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+          />
+
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="demo@example.com"
+            required
+            className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+          />
+
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            placeholder="Password"
+            required
+            minLength={6}
+            className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+          />
+
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            placeholder="Confirm Password"
+            required
+            className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Creating account...' : 'Create Account'}
+          </button>
+        </form>
+
+        <div className="text-center mt-8">
+          <span className="text-gray-600">or</span>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-        <div className="w-full max-w-md px-6">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Sign up for Papit</h1>
-          </div>
+        <div className="text-center mt-4">
+          <a href="/signIn" className="text-gray-900 underline hover:no-underline font-medium">
+            Already have an account? Sign in
+          </a>
+        </div>
 
-          {/* Message Display */}
-          {message && (
-            <div className={`mb-4 p-3 rounded-lg text-sm ${
-              message.includes('Error') 
-                ? 'bg-red-900 text-red-300 border border-red-700' 
-                : 'bg-green-900 text-green-300 border border-green-700'
-            }`}>
-              {message}
-            </div>
-          )}
-
-          <form onSubmit={handleSignUp} className="space-y-6">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                placeholder="Enter your username"
-                required
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Enter your password"
-                required
-                minLength={6}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-white text-gray-900 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing Up...' : 'Sign Up'}
-            </button>
-          </form>
-
-          <div className="text-center mt-6">
-            <p className="text-gray-400">
-              Already have an account?{' '}
-              <a href="/signIn" className="text-white hover:underline cursor-pointer">
-                Sign in
-              </a>
-            </p>
-          </div>
+        <div className="text-center mt-16 text-sm text-gray-500 space-x-2">
+          <a href="#" className="hover:underline">Legal Notice</a>
+          <span>·</span>
+          <a href="#" className="hover:underline">Privacy Policy</a>
+          <span>·</span>
+          <a href="#" className="hover:underline">Terms of Service</a>
         </div>
       </div>
     </div>
