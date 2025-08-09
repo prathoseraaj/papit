@@ -69,15 +69,6 @@ const Page = () => {
     setFileContent(content);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      router.push('/signUp');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   // Show loading spinner while checking authentication
   if (loading) {
     return (
