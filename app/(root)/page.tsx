@@ -1,17 +1,60 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/libs/supabaseClient";
 import InputField from "@/components/InputField";
 import Chatbot from "@/components/Chatbot";
 import CommitField from "@/components/CommitField";
 import { VscGitCommit } from "react-icons/vsc";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 const Page = () => {
   const [fileContent, setFileContent] = useState("");
   const [commitfield, setCommitfield] = useState(true);
   const [userName, setUserName] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          router.push('/signUp');
+          return;
+        }
+
+        if (!session) {
+          // No active session, redirect to signup
+          router.push('/signUp');
+          return;
+        }
+
+        // User is authenticated, set username from session
+        setUserName(session.user.user_metadata?.username || session.user.email);
+        setLoading(false);
+      } catch (error) {
+        console.error('Authentication check failed:', error);
+        router.push('/signUp');
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        router.push('/signUp');
+      } else if (session) {
+        setUserName(session.user.user_metadata?.username || session.user.email);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   const handleStartCollab = () => {
     const randomRoom = Math.random().toString(36).substr(2, 9);
@@ -25,6 +68,27 @@ const Page = () => {
   const handleCommitSelect = (content: string) => {
     setFileContent(content);
   };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push('/signUp');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col">
