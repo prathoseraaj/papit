@@ -1,16 +1,29 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '@/libs/supabaseClient'
 import { AuthError } from '@supabase/supabase-js'
+import { useRouter } from 'next/navigation'
 
 export default function Page() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        handleSuccessfulLogin()
+      }
+    }
+    checkUser()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -19,23 +32,35 @@ export default function Page() {
     })
   }
 
+  const handleSuccessfulLogin = () => {
+    const redirectUrl = localStorage.getItem('redirectAfterLogin')
+    if (redirectUrl) {
+      localStorage.removeItem('redirectAfterLogin')
+      router.push(redirectUrl)
+    } else {
+      router.push('/')
+    }
+  }
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
       })
 
       if (error) {
         setMessage(`Error: ${error.message}`)
-      } else {
+      } else if (data.user) {
         setMessage('Sign in successful!')
-        // Redirect to dashboard or home page
-        window.location.href = '/'
+        // Small delay to show success message
+        setTimeout(() => {
+          handleSuccessfulLogin()
+        }, 500)
       }
     } catch (error: unknown) {
       const authError = error as AuthError
