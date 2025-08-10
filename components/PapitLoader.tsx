@@ -8,7 +8,7 @@ export default function PapitLoader() {
 
   useEffect(() => {
     const circle = circleRef.current;
-    if (!circle) return;
+    if (!circle) return;  
 
     gsap.set(circle, { strokeDasharray: 283, strokeDashoffset: 280 });
 
