@@ -1,14 +1,17 @@
 "use client"
-import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/libs/supabaseClient';
-import { useRouter } from 'next/navigation';
-import PapitLoader from '@/components/PapitLoader';
+import React, { useState, useEffect, useRef } from "react";
+import { supabase } from "@/libs/supabaseClient";
+import { useRouter } from "next/navigation";
+import PapitLoader from "@/components/PapitLoader";
+import { phonePrefixes } from "@/utils/countryCode"; 
 
 interface UserProfile {
   id: string;
   username: string;
   email: string;
   full_name: string;
+  phone_number: string;
+  phone_country_code: string;
   location: string;
   avatar_url: string;
 }
@@ -19,10 +22,12 @@ const ProfilePage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
-    full_name: '',
-    location: '',
-    avatar_url: ''
+    username: "",
+    full_name: "",
+    location: "",
+    avatar_url: "",
+    phone_number: "",
+    phone_country_code: "+1",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,110 +40,103 @@ const ProfilePage: React.FC = () => {
   const loadProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
-        router.push('/signIn');
+        router.push("/signIn");
         return;
       }
-
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .single();
-
       if (error) throw error;
 
       setProfile(data);
       setFormData({
-        username: data.username || '',
-        full_name: data.full_name || '',
-        location: data.location || '',
-        avatar_url: data.avatar_url || ''
+        username: data.username || "",
+        full_name: data.full_name || "",
+        location: data.location || "",
+        avatar_url: data.avatar_url || "",
+        phone_number: data.phone_number || "",
+        phone_country_code: data.phone_country_code || "+1",
       });
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file.');
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB.');
+      alert("File size must be less than 5MB.");
       return;
     }
-
     setUploadingAvatar(true);
-
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${profile?.id}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from("avatars")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
-        .from('avatars')
+        .from("avatars")
         .getPublicUrl(filePath);
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        avatar_url: data.publicUrl
+        avatar_url: data.publicUrl,
       }));
-
     } catch (error) {
-      console.error('Error uploading avatar:', error);
-      alert('Error uploading avatar. Please try again.');
+      console.error("Error uploading avatar:", error);
+      alert("Error uploading avatar. Please try again.");
     } finally {
       setUploadingAvatar(false);
-      if (event.target) event.target.value = '';
+      if (event.target) event.target.value = "";
     }
   };
 
   const saveProfile = async () => {
     if (!profile) return;
-
     setSaving(true);
-
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           username: formData.username,
           full_name: formData.full_name,
           location: formData.location,
-          avatar_url: formData.avatar_url
+          avatar_url: formData.avatar_url,
+          phone_number: formData.phone_number,
+          phone_country_code: formData.phone_country_code,
         })
-        .eq('id', profile.id);
+        .eq("id", profile.id);
 
       if (error) throw error;
 
-      setProfile(prev => prev ? { ...prev, ...formData } : null);
+      setProfile((prev) => prev ? { ...prev, ...formData } : null);
       setIsEditing(false);
-      
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('Error saving profile. Please try again.');
+      console.error("Error saving profile:", error);
+      alert("Error saving profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -146,20 +144,19 @@ const ProfilePage: React.FC = () => {
 
   const cancelEdit = () => {
     if (!profile) return;
-    
     setFormData({
-      username: profile.username || '',
-      full_name: profile.full_name || '',
-      location: profile.location || '',
-      avatar_url: profile.avatar_url || ''
+      username: profile.username || "",
+      full_name: profile.full_name || "",
+      location: profile.location || "",
+      avatar_url: profile.avatar_url || "",
+      phone_number: profile.phone_number || "",
+      phone_country_code: profile.phone_country_code || "+1",
     });
     setIsEditing(false);
   };
 
   if (loading) {
-    return (
-     <PapitLoader/>
-    );
+    return <PapitLoader />;
   }
 
   if (!profile) {
@@ -167,7 +164,7 @@ const ProfilePage: React.FC = () => {
       <div className="min-h-screen bg-[#131313] flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">Error loading profile</p>
-          <button 
+          <button
             onClick={loadProfile}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -193,7 +190,7 @@ const ProfilePage: React.FC = () => {
             </button>
             <h1 className="text-3xl font-bold">Profile Settings</h1>
           </div>
-          
+
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
@@ -240,21 +237,21 @@ const ProfilePage: React.FC = () => {
               <div className="relative">
                 <div className="w-24 h-24 rounded-full border-4 border-[#1f1f1f] overflow-hidden bg-gray-700">
                   {formData.avatar_url ? (
-                    <img 
-                      src={formData.avatar_url} 
-                      alt="Profile" 
+                    <img
+                      src={formData.avatar_url}
+                      alt="Profile"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
                       }}
                     />
                   ) : null}
-                  <div className={`w-full h-full flex items-center justify-center text-2xl font-bold ${formData.avatar_url ? 'hidden' : ''}`}>
-                    {(formData.full_name || formData.username || 'U').charAt(0).toUpperCase()}
+                  <div className={`w-full h-full flex items-center justify-center text-2xl font-bold ${formData.avatar_url ? "hidden" : ""}`}>
+                    {(formData.full_name || formData.username || "U").charAt(0).toUpperCase()}
                   </div>
                 </div>
-                
+
                 {isEditing && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -272,7 +269,6 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
-
           <input
             ref={fileInputRef}
             type="file"
@@ -284,6 +280,7 @@ const ProfilePage: React.FC = () => {
           {/* Profile Info */}
           <div className="pt-16 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
               {/* Username */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300">Username</label>
@@ -291,13 +288,13 @@ const ProfilePage: React.FC = () => {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
                     className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="Enter your username"
                   />
                 ) : (
                   <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
-                    {profile.username || 'Not set'}
+                    {profile.username || "Not set"}
                   </div>
                 )}
               </div>
@@ -319,13 +316,13 @@ const ProfilePage: React.FC = () => {
                   <input
                     type="text"
                     value={formData.full_name}
-                    onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    onChange={(e) => handleInputChange("full_name", e.target.value)}
                     className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="Enter your full name"
                   />
                 ) : (
                   <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
-                    {profile.full_name || 'Not set'}
+                    {profile.full_name || "Not set"}
                   </div>
                 )}
               </div>
@@ -337,14 +334,45 @@ const ProfilePage: React.FC = () => {
                   <input
                     type="text"
                     value={formData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    onChange={(e) => handleInputChange("location", e.target.value)}
                     className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="Enter your location"
                   />
                 ) : (
                   <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300 flex items-center gap-2">
                     <LocationIcon className="w-4 h-4" />
-                    {profile.location || 'Not set'}
+                    {profile.location || "Not set"}
+                  </div>
+                )}
+              </div>
+
+              {/* Phone Number and Prefix */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Phone Number</label>
+                {isEditing ? (
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.phone_country_code}
+                      onChange={(e) => handleInputChange("phone_country_code", e.target.value)}
+                      className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    >
+                      {phonePrefixes.map((prefix: { code: string; country: string }) => (
+                        <option key={prefix.code} value={prefix.code}>
+                          {prefix.country} ({prefix.code})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      value={formData.phone_number}
+                      onChange={(e) => handleInputChange("phone_number", e.target.value)}
+                      className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300 flex items-center gap-2">
+                    {profile.phone_country_code || ""} {profile.phone_number || "Not set"}
                   </div>
                 )}
               </div>
@@ -361,12 +389,11 @@ const ProfilePage: React.FC = () => {
                   <KeyIcon />
                   Change Password
                 </button>
-                
                 <button
                   onClick={async () => {
-                    if (confirm('Are you sure you want to sign out?')) {
+                    if (confirm("Are you sure you want to sign out?")) {
                       await supabase.auth.signOut();
-                      router.push('/signIn');
+                      router.push("/signIn");
                     }
                   }}
                   className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg transition-colors flex items-center gap-2"
@@ -383,7 +410,7 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-// Icon Components
+// Icon Components (Copy from reference code)
 const ArrowLeftIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
     <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
