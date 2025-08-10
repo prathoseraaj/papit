@@ -569,7 +569,8 @@ const editor = useEditor({
       <button
         onClick={() => {
           setShowCollaboratorMenu(false);
-          router.push('/profile');
+          router.push('/profile')
+          console.log('Navigate to profile');
         }}
         className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
       >
