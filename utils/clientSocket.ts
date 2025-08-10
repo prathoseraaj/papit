@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { User } from "../components/InputField"; 
+import { User } from "../types"; 
 
 let socket: Socket | null = null;
 
