@@ -20,13 +20,7 @@ import Typography from "@tiptap/extension-typography";
 import { io, Socket } from "socket.io-client";
 import { CollaborativeCursor } from "./CollaborativeCursor";
 import type { Editor } from "@tiptap/core";
-
-export interface User {
-  id: string;
-  name: string;
-  color: string;
-  cursor?: { from: number; to: number };
-}
+import { User } from "@/types";
 
 interface InputFieldProps {
   value: string;
@@ -575,8 +569,7 @@ const editor = useEditor({
       <button
         onClick={() => {
           setShowCollaboratorMenu(false);
-          // Add profile page navigation logic here
-          console.log('Navigate to profile');
+          router.push('/profile');
         }}
         className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
       >
