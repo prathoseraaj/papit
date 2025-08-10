@@ -16,7 +16,7 @@ interface UserProfile {
   avatar_url: string;
 }
 
-const ProfilePage: React.FC = () => {
+const Page: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -470,4 +470,4 @@ const SignOutIcon: React.FC = () => (
   </svg>
 );
 
-export default ProfilePage;
+export default Page;
