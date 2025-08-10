@@ -9,6 +9,7 @@ interface UserProfile {
   username: string;
   email: string;
   full_name: string;
+  phone_number: string;
   location: string;
   avatar_url: string;
 }
@@ -21,6 +22,7 @@ const ProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
     full_name: '',
+    phone_number: '',
     location: '',
     avatar_url: ''
   });
@@ -53,6 +55,7 @@ const ProfilePage: React.FC = () => {
       setFormData({
         username: data.username || '',
         full_name: data.full_name || '',
+        phone_number: data.phone_number || '',
         location: data.location || '',
         avatar_url: data.avatar_url || ''
       });
@@ -126,6 +129,7 @@ const ProfilePage: React.FC = () => {
         .update({
           username: formData.username,
           full_name: formData.full_name,
+          phone_number: formData.phone_number,
           location: formData.location,
           avatar_url: formData.avatar_url
         })
@@ -150,6 +154,7 @@ const ProfilePage: React.FC = () => {
     setFormData({
       username: profile.username || '',
       full_name: profile.full_name || '',
+      phone_number: profile.phone_number || '',
       location: profile.location || '',
       avatar_url: profile.avatar_url || ''
     });
@@ -326,6 +331,24 @@ const ProfilePage: React.FC = () => {
                 ) : (
                   <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
                     {profile.full_name || 'Not set'}
+                  </div>
+                )}
+              </div>
+
+              {/* Phone Number */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Phone Number</label>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={formData.phone_number}
+                    onChange={(e) => handleInputChange('phone_number', e.target.value)}
+                    className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="Enter your phone number"
+                  />
+                ) : (
+                  <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
+                    {profile.phone_number || 'Not set'}
                   </div>
                 )}
               </div>
