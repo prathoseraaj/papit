@@ -273,36 +273,6 @@ const Page: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-            <span className="text-gray-900 font-bold text-lg">+</span>
-          </div>
-          <span className="text-xl font-semibold">Papit</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => router.back()}
-            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
-          >
-            <ArrowLeftIcon />
-          </button>
-          <div className="w-10 h-10 bg-orange-400 rounded-full overflow-hidden">
-            {formData.avatar_url ? (
-              <img 
-                src={formData.avatar_url} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                {(formData.full_name || formData.username || "U").charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto p-8">
