@@ -32,15 +32,19 @@ export default function Page() {
     })
   }
 
-  const handleSuccessfulLogin = () => {
-    const redirectUrl = localStorage.getItem('redirectAfterLogin')
-    if (redirectUrl) {
-      localStorage.removeItem('redirectAfterLogin')
-      router.push(redirectUrl)
-    } else {
-      router.push('/')
-    }
+const handleSuccessfulLogin = () => {
+  const redirectUrl = localStorage.getItem('redirectAfterLogin')
+  console.log('redirectUrl from localStorage:', redirectUrl)
+  
+  if (redirectUrl) {
+    console.log('Redirecting to stored URL:', redirectUrl)
+    localStorage.removeItem('redirectAfterLogin')
+    router.push(redirectUrl)
+  } else {
+    console.log('No stored URL, going to root')
+    router.push('/')
   }
+}
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
