@@ -15,12 +15,6 @@ export default function Page() {
   const [message, setMessage] = useState('')
   const [usernameError, setUsernameError] = useState('')
 
-  const validateUsername = (username: string) => {
-    // Only allow lowercase letters, numbers, and underscores
-    const usernameRegex = /^[a-z0-9_]+$/
-    return usernameRegex.test(username)
-  }
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     
