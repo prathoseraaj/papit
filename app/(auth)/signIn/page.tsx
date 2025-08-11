@@ -117,7 +117,7 @@ export default function Page() {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            placeholder="demo@example.com"
+            placeholder="youremail@example.com"
             required
             className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
           />
