@@ -15,7 +15,7 @@ interface UserProfile {
   location: string;
   avatar_url: string;
 }
-
+  
 const Page: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
