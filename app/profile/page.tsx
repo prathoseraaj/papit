@@ -30,6 +30,7 @@ const Page: React.FC = () => {
     phone_country_code: "+1",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -68,10 +69,28 @@ const Page: React.FC = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    if (field === 'username') {
+      // Check if input contains invalid characters before cleaning
+      const hasInvalidChars = /[^a-z0-9_]/.test(value);
+      
+      if (hasInvalidChars) {
+        setUsernameError('Only lowercase letters, numbers, and underscores allowed');
+      } else {
+        setUsernameError('');
+      }
+      
+      // Convert to lowercase and remove invalid characters
+      const cleanedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [field]: cleanedValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +135,13 @@ const Page: React.FC = () => {
 
   const saveProfile = async () => {
     if (!profile) return;
+
+    // Check username length
+    if (formData.username.length < 3) {
+      setUsernameError('Username must be at least 3 characters long');
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -134,6 +160,7 @@ const Page: React.FC = () => {
 
       setProfile((prev) => prev ? { ...prev, ...formData } : null);
       setIsEditing(false);
+      setUsernameError('');
     } catch (error) {
       console.error("Error saving profile:", error);
       alert("Error saving profile. Please try again.");
@@ -152,6 +179,7 @@ const Page: React.FC = () => {
       phone_number: profile.phone_number || "",
       phone_country_code: profile.phone_country_code || "+1",
     });
+    setUsernameError('');
     setIsEditing(false);
   };
 
@@ -285,13 +313,21 @@ const Page: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300">Username</label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange("username", e.target.value)}
-                    className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
-                    placeholder="Enter your username"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => handleInputChange("username", e.target.value)}
+                      className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
+                      placeholder="Enter your username"
+                      minLength={3}
+                    />
+                    {usernameError && (
+                      <div className="absolute -top-2 -right-2 text-red-500 text-xs bg-red-50 px-2 py-1 rounded shadow-lg border border-red-200 z-10">
+                        {usernameError}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
                     {profile.username || "Not set"}
