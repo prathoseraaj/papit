@@ -1,12 +1,11 @@
-// User interface for collaboration features
 export interface User {
   id: string;
   name: string;
   color: string;
+  avatar_url?: string; 
   cursor?: { from: number; to: number };
 }
 
-// User profile interface for profile management
 export interface UserProfile {
   id: string;
   full_name: string;
