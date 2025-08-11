@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { supabase } from '@/libs/supabaseClient'
-import { useRouter } from 'next/navigation'
+import { supabase } from "@/libs/supabaseClient";
+import { useRouter } from "next/navigation";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -90,15 +90,17 @@ const InputField: React.FC<InputFieldProps> = ({
   const [connectedUsers, setConnectedUsers] = useState<User[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [initialContent, setInitialContent] = useState<string | null>(null);
-  
-
   const collaboratorMenuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const isRemoteUpdate = useRef(false);
-  const router = useRouter()
+  const router = useRouter();
   const editorRef = useRef<Editor | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    avatar_url?: string;
+  } | null>(null);
+
   const room =
     typeof window !== "undefined"
       ? roomId
@@ -108,41 +110,90 @@ const InputField: React.FC<InputFieldProps> = ({
 
   // Collab: Ask for name if not set
   useEffect(() => {
-  if (isCollab && !userName && setUserName) {
-    // Only prompt if we don't already have a username
-    const promptForName = () => {
-      let inputName = prompt("Enter your name for collaboration:", "");
-      if (!inputName || inputName.trim() === "") {
-        inputName = "Anonymous";
-      }
-      setUserName(inputName.trim());
-    };
-    
-    // Use a small delay to ensure the component is fully mounted
-    const timer = setTimeout(promptForName, 100);
-    return () => clearTimeout(timer);
-  }
-}, [isCollab, setUserName]); 
-
-  // Set current user with real name (not random)
-  useEffect(() => {
-    if (!currentUser && isCollab && userName) {
-      const user: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: userName,
-        color: getRandomColor(),
+    if (isCollab && !userName && setUserName) {
+      // Only prompt if we don't already have a username
+      const promptForName = () => {
+        let inputName = prompt("Enter your name for collaboration:", "");
+        if (!inputName || inputName.trim() === "") {
+          inputName = "Anonymous";
+        }
+        setUserName(inputName.trim());
       };
-      setCurrentUser(user);
+
+      // Use a small delay to ensure the component is fully mounted
+      const timer = setTimeout(promptForName, 100);
+      return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line
-  }, [userName, isCollab]);
+  }, [isCollab, setUserName]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (authUser) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", authUser.id)
+          .single();
+        setUserProfile(profile);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    const initializeUser = async () => {
+      if (!isCollab || !userName) return;
+
+      try {
+        // Fetch current user's profile data
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("avatar_url")
+            .eq("id", authUser.id)
+            .single();
+
+          setUserProfile(profile);
+
+          // Create user object with avatar
+          const user: User = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: userName,
+            color: getRandomColor(),
+            avatar_url: profile?.avatar_url || undefined,
+          };
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        // Fallback without avatar
+        const user: User = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: userName,
+          color: getRandomColor(),
+        };
+        setCurrentUser(user);
+      }
+    };
+
+    if (!currentUser && isCollab && userName) {
+      initializeUser();
+    }
+  }, [userName, isCollab, currentUser]);
 
   // Socket setup (collab only)
   useEffect(() => {
     if (!isCollab || !currentUser) return;
     if (typeof window === "undefined") return;
     // ---- FIXED: use only the path option, not the first argument ----
-    const socket = io("https://vind-backend.onrender.com",{
+    const socket = io("https://vind-backend.onrender.com", {
       path: "/api/socket",
       query: {
         room,
@@ -206,140 +257,140 @@ const InputField: React.FC<InputFieldProps> = ({
   }, [room, isCollab, currentUser]);
 
   // Editor setup
-const editor = useEditor({
-  extensions: [
-    StarterKit.configure({ 
-      heading: false,  // Disable StarterKit's heading
-      strike: false,   // Using separate Strike extension
-      bulletList: false,
-      orderedList: false,
-      listItem: false
-    }),
-    
-    // Custom Heading configuration
-    Heading.configure({
-      levels: [1, 2, 3],
-      HTMLAttributes: {
-        class: "heading-element",
-      },
-    }),
-    
-    Underline,
-    Strike,
-    Superscript,
-    Subscript,
-    
-    CollaborativeCursor.configure({
-      users: connectedUsers
-        .filter(
-          (u): u is User & { cursor: { from: number; to: number } } =>
-            !!u.cursor
-        )
-        .map((u) => ({
-          ...u,
-          cursor: u.cursor as { from: number; to: number },
-        })),
-      currentUserId: currentUser?.id || "",
-    }),
-    
-    Typography.configure({
-      openDoubleQuote: '"',
-      closeDoubleQuote: '"',
-      openSingleQuote: "'",
-      closeSingleQuote: "'",
-      emDash: "—",
-      ellipsis: "…",
-      copyright: "©",
-      trademark: "™",
-      registeredTrademark: "®",
-      oneHalf: "½",
-      oneQuarter: "¼",
-      threeQuarters: "¾",
-      plusMinus: "±",
-      notEqual: "≠",
-      laquo: "«",
-      raquo: "»",
-      multiplication: "×",
-      superscriptTwo: "²",
-      superscriptThree: "³",
-    }),
-    
-    Highlight.configure({ multicolor: true }),
-    
-    Link.configure({
-      openOnClick: false,
-      HTMLAttributes: {
-        class: "text-blue-400 underline hover:text-blue-300",
-      },
-    }),
-    
-    Image.configure({
-      HTMLAttributes: {
-        class: "max-w-full h-auto rounded-lg shadow-lg my-4",
-      },
-      allowBase64: true,
-    }),
-    
-    // Fixed TextAlign configuration
-    TextAlign.configure({
-      types: ["heading", "paragraph"], // Removed "div"
-      alignments: ["left", "center", "right", "justify"],
-      defaultAlignment: "left",
-    }),
-    
-    BulletList.configure({
-      HTMLAttributes: {
-        class: "bullet-list",
-      },
-    }),
-    
-    OrderedList.configure({
-      HTMLAttributes: {
-        class: "ordered-list",
-      },
-    }),
-    
-    ListItem,
-    
-    Placeholder.configure({
-      placeholder: ({ node }) => {
-        if (node.type.name === "heading") {
-          return "Enter your heading here...";
-        }
-        return "Start writing your collaborative document. Invite team members to join!";
-      },
-    }),
-  ],
-  content: value || defaultContent,
-  immediatelyRender: false,
-  onCreate({ editor }) {
-    editorRef.current = editor;
-  },
-  onUpdate({ editor }) {
-    const content = editor.getHTML();
-    onChange(content);
-    if (
-      isCollab &&
-      !isRemoteUpdate.current &&
-      socketRef.current &&
-      currentUser
-    ) {
-      socketRef.current.emit("content-changed", {
-        content,
-        userId: currentUser.id,
-      });
-    }
-  },
-  onSelectionUpdate({ editor }) {
-    if (isCollab && socketRef.current && currentUser) {
-      const { from, to } = editor.state.selection;
-      socketRef.current.emit("cursor-changed", {
-        userId: currentUser.id,
-        cursor: { from, to },
-      });
-    }
-  },
-});
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false, // Disable StarterKit's heading
+        strike: false, // Using separate Strike extension
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+      }),
+
+      // Custom Heading configuration
+      Heading.configure({
+        levels: [1, 2, 3],
+        HTMLAttributes: {
+          class: "heading-element",
+        },
+      }),
+
+      Underline,
+      Strike,
+      Superscript,
+      Subscript,
+
+      CollaborativeCursor.configure({
+        users: connectedUsers
+          .filter(
+            (u): u is User & { cursor: { from: number; to: number } } =>
+              !!u.cursor
+          )
+          .map((u) => ({
+            ...u,
+            cursor: u.cursor as { from: number; to: number },
+          })),
+        currentUserId: currentUser?.id || "",
+      }),
+
+      Typography.configure({
+        openDoubleQuote: '"',
+        closeDoubleQuote: '"',
+        openSingleQuote: "'",
+        closeSingleQuote: "'",
+        emDash: "—",
+        ellipsis: "…",
+        copyright: "©",
+        trademark: "™",
+        registeredTrademark: "®",
+        oneHalf: "½",
+        oneQuarter: "¼",
+        threeQuarters: "¾",
+        plusMinus: "±",
+        notEqual: "≠",
+        laquo: "«",
+        raquo: "»",
+        multiplication: "×",
+        superscriptTwo: "²",
+        superscriptThree: "³",
+      }),
+
+      Highlight.configure({ multicolor: true }),
+
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-400 underline hover:text-blue-300",
+        },
+      }),
+
+      Image.configure({
+        HTMLAttributes: {
+          class: "max-w-full h-auto rounded-lg shadow-lg my-4",
+        },
+        allowBase64: true,
+      }),
+
+      // Fixed TextAlign configuration
+      TextAlign.configure({
+        types: ["heading", "paragraph"], // Removed "div"
+        alignments: ["left", "center", "right", "justify"],
+        defaultAlignment: "left",
+      }),
+
+      BulletList.configure({
+        HTMLAttributes: {
+          class: "bullet-list",
+        },
+      }),
+
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: "ordered-list",
+        },
+      }),
+
+      ListItem,
+
+      Placeholder.configure({
+        placeholder: ({ node }) => {
+          if (node.type.name === "heading") {
+            return "Enter your heading here...";
+          }
+          return "Start writing your collaborative document. Invite team members to join!";
+        },
+      }),
+    ],
+    content: value || defaultContent,
+    immediatelyRender: false,
+    onCreate({ editor }) {
+      editorRef.current = editor;
+    },
+    onUpdate({ editor }) {
+      const content = editor.getHTML();
+      onChange(content);
+      if (
+        isCollab &&
+        !isRemoteUpdate.current &&
+        socketRef.current &&
+        currentUser
+      ) {
+        socketRef.current.emit("content-changed", {
+          content,
+          userId: currentUser.id,
+        });
+      }
+    },
+    onSelectionUpdate({ editor }) {
+      if (isCollab && socketRef.current && currentUser) {
+        const { from, to } = editor.state.selection;
+        socketRef.current.emit("cursor-changed", {
+          userId: currentUser.id,
+          cursor: { from, to },
+        });
+      }
+    },
+  });
 
   // Sync editor content when initialContent arrives or value changes (but don't loop)
   useEffect(() => {
@@ -525,109 +576,169 @@ const editor = useEditor({
 
       <div className="flex items-center justify-between p-3 gap-2">
         {/* Left: Collaboration Indicator */}
-<div className="relative" ref={collaboratorMenuRef}>
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      setShowCollaboratorMenu(!showCollaboratorMenu);
-    }}
-    className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-700 transition-colors"
-    title="Profile Menu"
-  >
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-      {userName ? userName.charAt(0).toUpperCase() : 'U'}
-    </div>
-    {isCollab && (
-      <div className="flex items-center gap-1">
-        <div
-          className={`w-2 h-2 rounded-full ${
-            isConnected ? "bg-green-500" : "bg-red-500"
-          } animate-pulse`}
-        />
-        <span className="text-sm text-gray-400">
-          {connectedUsers.length} online
-        </span>
-      </div>
-    )}
-  </button>
+        <div className="relative" ref={collaboratorMenuRef}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCollaboratorMenu(!showCollaboratorMenu);
+            }}
+            className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-700 transition-colors"
+            title="Profile Menu"
+          >
+            {isCollab ? (
+              currentUser?.avatar_url ? (
+                <img
+                  src={currentUser.avatar_url}
+                  alt={currentUser.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                  {userName ? userName.charAt(0).toUpperCase() : "U"}
+                </div>
+              )
+            ) : userProfile?.avatar_url ? (
+              <img
+                src={userProfile.avatar_url}
+                alt="Profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                {userName ? userName.charAt(0).toUpperCase() : "U"}
+              </div>
+            )}
+
+            {isCollab && (
+              <div className="flex items-center gap-1">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isConnected ? "bg-green-500" : "bg-red-500"
+                  } animate-pulse`}
+                />
+                <span className="text-sm text-gray-400">
+                  {connectedUsers.length} online
+                </span>
+              </div>
+            )}
+          </button>
 
           {showCollaboratorMenu && (
-  <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[200px]">
-    <div className="px-4 py-2 border-b border-gray-600">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-          {userName ? userName.charAt(0).toUpperCase() : 'U'}
-        </div>
-        <div>
-          <div className="text-white text-sm font-medium">{userName || 'User'}</div>
-          <div className="text-gray-400 text-xs">Active now</div>
-        </div>
-      </div>
-    </div>
-    
-    <div className="py-1">
-      <button
-        onClick={() => {
-          setShowCollaboratorMenu(false);
-          router.push('/profile')
-          console.log('Navigate to profile');
-        }}
-        className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
-      >
-        <ProfileIcon />
-        Profile
-      </button>
-      
-      {!isCollab && (
-        <button
-          onClick={() => {
-            setShowCollaboratorMenu(false);
-            if (onStartCollab) onStartCollab();
-          }}
-          className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
-        >
-          <ShareIcon />
-          Start Collaboration
-        </button>
-      )}
-      
-      {isCollab && (
-        <div className="px-4 py-2">
-          <div className="text-xs text-gray-500 mb-2">Collaborators ({connectedUsers.length})</div>
-          <div className="max-h-24 overflow-y-auto space-y-1">
-            {userList.map((user) => (
-              <div key={user.id} className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: user.color }}
-                />
-                <span className="text-gray-300 text-xs">{user.displayName}</span>
+            <div className="absolute left-0 top-full mt-1 bg-[#2a2a2a] border border-gray-600 rounded-lg shadow-lg py-2 z-50 min-w-[200px]">
+              <div className="px-4 py-2 border-b border-gray-600">
+                <div className="flex items-center gap-3">
+                  {isCollab ? (
+                    currentUser?.avatar_url ? (
+                      <img
+                        src={currentUser.avatar_url}
+                        alt={currentUser.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                        {userName ? userName.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )
+                  ) : userProfile?.avatar_url ? (
+                    <img
+                      src={userProfile.avatar_url}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                      U
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-white text-sm font-medium">
+                      {userName || "User"}
+                    </div>
+                    <div className="text-gray-400 text-xs">Active now</div>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      <div className="border-t border-gray-600 mt-2 pt-2">
-        <button
-      onClick={async () => {
-        setShowCollaboratorMenu(false);
-        try {
-          await supabase.auth.signOut();
-          router.push('/signIn');
-        } catch (error) {
-          console.error('Error signing out:', error);
-        }
-      }}
-          className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-950/20 transition-colors flex items-center gap-3 text-sm"
-        >
-          <SignOutIcon />
-          Sign Out
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    setShowCollaboratorMenu(false);
+                    router.push("/profile");
+                    console.log("Navigate to profile");
+                  }}
+                  className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
+                >
+                  <ProfileIcon />
+                  Profile
+                </button>
+
+                {!isCollab && (
+                  <button
+                    onClick={() => {
+                      setShowCollaboratorMenu(false);
+                      if (onStartCollab) onStartCollab();
+                    }}
+                    className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 transition-colors flex items-center gap-3 text-sm"
+                  >
+                    <ShareIcon />
+                    Start Collaboration
+                  </button>
+                )}
+
+                {isCollab && (
+                  <div className="px-4 py-2">
+                    <div className="text-xs text-gray-500 mb-2">
+                      Collaborators ({connectedUsers.length})
+                    </div>
+                    <div className="max-h-24 overflow-y-auto space-y-1">
+                      {userList.map((user) => (
+                        <div key={user.id} className="flex items-center gap-2">
+                          {user.avatar_url ? (
+                            <img
+                              src={user.avatar_url}
+                              alt={user.displayName}
+                              className="w-6 h-6 rounded-full object-cover mr-2"
+                            />
+                          ) : (
+                            <div
+                              className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold"
+                              style={{
+                                backgroundColor: user.color,
+                                color: "#fff",
+                              }}
+                            >
+                              {user.displayName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-gray-300 text-xs">
+                            {user.displayName}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="border-t border-gray-600 mt-2 pt-2">
+                  <button
+                    onClick={async () => {
+                      setShowCollaboratorMenu(false);
+                      try {
+                        await supabase.auth.signOut();
+                        router.push("/signIn");
+                      } catch (error) {
+                        console.error("Error signing out:", error);
+                      }
+                    }}
+                    className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-950/20 transition-colors flex items-center gap-3 text-sm"
+                  >
+                    <SignOutIcon />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Center: Toolbar Buttons */}
@@ -826,7 +937,7 @@ const editor = useEditor({
       </div>
       {/* ... Global styles ... */}
       <style jsx global>{`
-                .ProseMirror:focus {
+        .ProseMirror:focus {
           outline: none !important;
           box-shadow: none !important;
         }
