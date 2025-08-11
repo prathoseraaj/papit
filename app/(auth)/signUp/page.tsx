@@ -13,6 +13,7 @@ export default function Page() {
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [usernameError, setUsernameError] = useState('')
 
   const validateUsername = (username: string) => {
     // Only allow lowercase letters, numbers, and underscores
@@ -25,6 +26,15 @@ export default function Page() {
     
     // Special handling for username field
     if (name === 'username') {
+      // Check if input contains invalid characters before cleaning
+      const hasInvalidChars = /[^a-z0-9_]/.test(value)
+      
+      if (hasInvalidChars) {
+        setUsernameError('Only lowercase letters, numbers, and underscores allowed')
+      } else {
+        setUsernameError('')
+      }
+      
       // Convert to lowercase and remove invalid characters
       const cleanedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '')
       setFormData({
@@ -43,17 +53,11 @@ export default function Page() {
     e.preventDefault()
     setLoading(true)
     setMessage('')
-
-    // Validate username
-    if (!validateUsername(formData.username)) {
-      setMessage('Error: Username can only contain lowercase letters, numbers, and underscores')
-      setLoading(false)
-      return
-    }
+    setUsernameError('')
 
     // Check username length
     if (formData.username.length < 3) {
-      setMessage('Error: Username must be at least 3 characters long')
+      setUsernameError('Username must be at least 3 characters long')
       setLoading(false)
       return
     }
@@ -115,21 +119,22 @@ export default function Page() {
         )}
 
         <form onSubmit={handleSignUp} className="space-y-4">
-          <div>
+          <div className="relative">
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              placeholder="username (lowercase only)"
+              placeholder="Username"
               required
               minLength={3}
-              pattern="^[a-z0-9_]+$"
               className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Only lowercase letters, numbers, and underscores allowed
-            </p>
+            {usernameError && (
+              <div className="absolute -top-2 -right-2 text-red-500 text-xs bg-red-50 px-2 py-1 rounded shadow-lg border border-red-200 z-10">
+                {usernameError}
+              </div>
+            )}
           </div>
 
           <input
