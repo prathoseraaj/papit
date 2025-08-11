@@ -14,17 +14,49 @@ export default function Page() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
+  const validateUsername = (username: string) => {
+    // Only allow lowercase letters, numbers, and underscores
+    const usernameRegex = /^[a-z0-9_]+$/
+    return usernameRegex.test(username)
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    const { name, value } = e.target
+    
+    // Special handling for username field
+    if (name === 'username') {
+      // Convert to lowercase and remove invalid characters
+      const cleanedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+      setFormData({
+        ...formData,
+        [name]: cleanedValue
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+    }
   }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
+
+    // Validate username
+    if (!validateUsername(formData.username)) {
+      setMessage('Error: Username can only contain lowercase letters, numbers, and underscores')
+      setLoading(false)
+      return
+    }
+
+    // Check username length
+    if (formData.username.length < 3) {
+      setMessage('Error: Username must be at least 3 characters long')
+      setLoading(false)
+      return
+    }
 
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -83,15 +115,22 @@ export default function Page() {
         )}
 
         <form onSubmit={handleSignUp} className="space-y-4">
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            placeholder="Username"
-            required
-            className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
-          />
+          <div>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              placeholder="username (lowercase only)"
+              required
+              minLength={3}
+              pattern="^[a-z0-9_]+$"
+              className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Only lowercase letters, numbers, and underscores allowed
+            </p>
+          </div>
 
           <input
             type="email"
