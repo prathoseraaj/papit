@@ -31,12 +31,25 @@ const Page: React.FC = () => {
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  // Debounced username availability check
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (formData.username && formData.username.length >= 3 && formData.username !== profile?.username) {
+        await checkUsernameAvailability(formData.username);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.username, profile?.username]);
 
   const loadProfile = async () => {
     try {
@@ -68,8 +81,31 @@ const Page: React.FC = () => {
     }
   };
 
+  const checkUsernameAvailability = async (username: string) => {
+    setCheckingUsername(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("username", username)
+        .neq("id", profile?.id);
+      
+      if (error) throw error;
+      
+      setUsernameAvailable(data.length === 0);
+    } catch (error) {
+      console.error("Error checking username:", error);
+      setUsernameAvailable(null);
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     if (field === 'username') {
+      // Reset availability check
+      setUsernameAvailable(null);
+      
       // Check if input contains invalid characters before cleaning
       const hasInvalidChars = /[^a-z0-9_]/.test(value);
       
@@ -96,16 +132,27 @@ const Page: React.FC = () => {
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    
     if (!file.type.startsWith("image/")) {
       alert("Please select a valid image file.");
       return;
     }
+    
     if (file.size > 5 * 1024 * 1024) {
       alert("File size must be less than 5MB.");
       return;
     }
+    
     setUploadingAvatar(true);
     try {
+      // Delete old avatar if exists
+      if (formData.avatar_url && formData.avatar_url.includes('avatars/')) {
+        const oldPath = formData.avatar_url.split('/avatars/')[1];
+        if (oldPath) {
+          await supabase.storage.from("avatars").remove([`avatars/${oldPath}`]);
+        }
+      }
+
       const fileExt = file.name.split(".").pop();
       const fileName = `${profile?.id}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
@@ -136,9 +183,14 @@ const Page: React.FC = () => {
   const saveProfile = async () => {
     if (!profile) return;
 
-    // Check username length
+    // Validation
     if (formData.username.length < 3) {
       setUsernameError('Username must be at least 3 characters long');
+      return;
+    }
+
+    if (usernameAvailable === false) {
+      setUsernameError('Username is already taken');
       return;
     }
 
@@ -156,11 +208,18 @@ const Page: React.FC = () => {
         })
         .eq("id", profile.id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          setUsernameError('Username is already taken');
+          return;
+        }
+        throw error;
+      }
 
       setProfile((prev) => prev ? { ...prev, ...formData } : null);
       setIsEditing(false);
       setUsernameError('');
+      setUsernameAvailable(null);
     } catch (error) {
       console.error("Error saving profile:", error);
       alert("Error saving profile. Please try again.");
@@ -180,6 +239,7 @@ const Page: React.FC = () => {
       phone_country_code: profile.phone_country_code || "+1",
     });
     setUsernameError('');
+    setUsernameAvailable(null);
     setIsEditing(false);
   };
 
@@ -203,242 +263,271 @@ const Page: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#131313] text-white">
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-              title="Go back"
-            >
-              <ArrowLeftIcon />
-            </button>
-            <h1 className="text-3xl font-bold">Profile Settings</h1>
-          </div>
+  const getUsernameInputStatus = () => {
+    if (usernameError) return 'error';
+    if (checkingUsername) return 'checking';
+    if (usernameAvailable === true) return 'available';
+    if (usernameAvailable === false) return 'taken';
+    return 'default';
+  };
 
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-700">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
+            <span className="text-gray-900 font-bold text-lg">+</span>
+          </div>
+          <span className="text-xl font-semibold">Papit</span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => router.back()}
+            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <ArrowLeftIcon />
+          </button>
+          <div className="w-10 h-10 bg-orange-400 rounded-full overflow-hidden">
+            {formData.avatar_url ? (
+              <img 
+                src={formData.avatar_url} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                {(formData.full_name || formData.username || "U").charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-2xl mx-auto p-8">
+        {/* Page Title and Edit Button */}
+        <div className="flex items-center justify-between mb-12">
+          <h1 className="text-3xl font-bold">Profile Settings</h1>
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
             >
-              <EditIcon />
-              Edit Profile
+              Edit
             </button>
           ) : (
             <div className="flex gap-2">
               <button
                 onClick={cancelEdit}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors text-sm"
                 disabled={saving}
               >
                 Cancel
               </button>
               <button
                 onClick={saveProfile}
-                disabled={saving}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                disabled={saving || usernameAvailable === false}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm disabled:opacity-50"
               >
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <SaveIcon />
-                    Save Changes
-                  </>
-                )}
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           )}
         </div>
 
-        {/* Profile Card */}
-        <div className="bg-[#1f1f1f] rounded-xl border border-gray-700 overflow-hidden">
-          {/* Avatar Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-32 relative">
-            <div className="absolute -bottom-12 left-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 border-[#1f1f1f] overflow-hidden bg-gray-700">
-                  {formData.avatar_url ? (
-                    <img
-                      src={formData.avatar_url}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
-                      }}
-                    />
-                  ) : null}
-                  <div className={`w-full h-full flex items-center justify-center text-2xl font-bold ${formData.avatar_url ? "hidden" : ""}`}>
-                    {(formData.full_name || formData.username || "U").charAt(0).toUpperCase()}
-                  </div>
+        {/* Profile Picture Section */}
+        <div className="text-center mb-12">
+          <div className="relative inline-block">
+            <div className="w-32 h-32 rounded-full overflow-hidden bg-orange-200 mx-auto relative">
+              {formData.avatar_url ? (
+                <img 
+                  src={formData.avatar_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-700">
+                  {(formData.full_name || formData.username || "U").charAt(0).toUpperCase()}
                 </div>
+              )}
+              {isEditing && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
+                  {uploadingAvatar ? (
+                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <CameraIcon className="w-8 h-8 text-white" />
+                  )}
+                </div>
+              )}
+            </div>
+            {isEditing && (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            )}
+          </div>
+          <h2 className="text-2xl font-bold mt-4 mb-2">{formData.full_name || "User"}</h2>
+          <p className="text-gray-400">Manage your profile information</p>
+        </div>
 
-                {isEditing && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingAvatar}
-                    className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
-                    title="Change avatar"
-                  >
-                    {uploadingAvatar ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <CameraIcon />
-                    )}
-                  </button>
-                )}
+        {/* Form Fields */}
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium mb-3 text-gray-300">Username</label>
+              {isEditing ? (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:outline-none transition-all ${
+                      getUsernameInputStatus() === 'error' || getUsernameInputStatus() === 'taken'
+                        ? 'border-red-500 focus:border-red-500'
+                        : getUsernameInputStatus() === 'available'
+                        ? 'border-green-500 focus:border-green-500'
+                        : 'border-gray-700 focus:border-blue-500'
+                    }`}
+                    placeholder="Enter username"
+                  />
+                  
+                  {/* Status indicator */}
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {checkingUsername ? (
+                      <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    ) : getUsernameInputStatus() === 'available' ? (
+                      <CheckIcon className="w-4 h-4 text-green-500" />
+                    ) : (getUsernameInputStatus() === 'taken' || getUsernameInputStatus() === 'error') ? (
+                      <XIcon className="w-4 h-4 text-red-500" />
+                    ) : null}
+                  </div>
+                  
+                  {/* Error/success message */}
+                  {(usernameError || usernameAvailable !== null) && (
+                    <div className={`text-xs mt-1 ${
+                      usernameError || usernameAvailable === false 
+                        ? 'text-red-400' 
+                        : 'text-green-400'
+                    }`}>
+                      {usernameError || (usernameAvailable === false ? 'Username is taken' : 'Username is available')}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  {formData.username || "Not set"}
+                </div>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium mb-3 text-gray-300">Email</label>
+              <div className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                {profile.email}
               </div>
             </div>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarUpload}
-            className="hidden"
-          />
 
-          {/* Profile Info */}
-          <div className="pt-16 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {/* Username */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Username</label>
-                {isEditing ? (
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.username}
-                      onChange={(e) => handleInputChange("username", e.target.value)}
-                      className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
-                      placeholder="Enter your username"
-                      minLength={3}
-                    />
-                    {usernameError && (
-                      <div className="absolute -top-2 -right-2 text-red-500 text-xs bg-red-50 px-2 py-1 rounded shadow-lg border border-red-200 z-10">
-                        {usernameError}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
-                    {profile.username || "Not set"}
-                  </div>
-                )}
-              </div>
-
-              {/* Email (Read-only) */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Email</label>
-                <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-400 flex items-center gap-2">
-                  <LockIcon className="w-4 h-4" />
-                  {profile.email}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium mb-3 text-gray-300">Full Name</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.full_name}
+                  onChange={(e) => handleInputChange("full_name", e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Enter full name"
+                />
+              ) : (
+                <div className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  {formData.full_name || "Not set"}
                 </div>
-                <p className="text-xs text-gray-500">Email cannot be changed from here</p>
-              </div>
-
-              {/* Full Name */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Full Name</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.full_name}
-                    onChange={(e) => handleInputChange("full_name", e.target.value)}
-                    className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
-                    placeholder="Enter your full name"
-                  />
-                ) : (
-                  <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300">
-                    {profile.full_name || "Not set"}
-                  </div>
-                )}
-              </div>
-
-              {/* Location */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Location</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => handleInputChange("location", e.target.value)}
-                    className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
-                    placeholder="Enter your location"
-                  />
-                ) : (
-                  <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300 flex items-center gap-2">
-                    <LocationIcon className="w-4 h-4" />
-                    {profile.location || "Not set"}
-                  </div>
-                )}
-              </div>
-
-              {/* Phone Number and Prefix */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Phone Number</label>
-                {isEditing ? (
-                  <div className="flex gap-2">
-                    <select
-                      value={formData.phone_country_code}
-                      onChange={(e) => handleInputChange("phone_country_code", e.target.value)}
-                      className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
-                    >
-                      {phonePrefixes.map((prefix: { code: string; country: string }) => (
-                        <option key={prefix.code} value={prefix.code}>
-                          {prefix.country} ({prefix.code})
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="tel"
-                      value={formData.phone_number}
-                      onChange={(e) => handleInputChange("phone_number", e.target.value)}
-                      className="w-full p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none transition-colors"
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
-                ) : (
-                  <div className="p-3 bg-[#2a2a2a] border border-gray-600 rounded-lg text-gray-300 flex items-center gap-2">
-                    {profile.phone_country_code || ""} {profile.phone_number || "Not set"}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Account Actions */}
-            <div className="mt-8 pt-6 border-t border-gray-700">
-              <h3 className="text-lg font-semibold mb-4">Account Actions</h3>
-              <div className="flex flex-wrap gap-4">
-                <button
-                  onClick={() => router.push('/change-password')}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <KeyIcon />
-                  Change Password
-                </button>
-                <button
-                  onClick={async () => {
-                    if (confirm("Are you sure you want to sign out?")) {
-                      await supabase.auth.signOut();
-                      router.push("/signIn");
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <SignOutIcon />
-                  Sign Out
-                </button>
-              </div>
+            {/* Location */}
+            <div>
+              <label className="block text-sm font-medium mb-3 text-gray-300">Location</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange("location", e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Enter location"
+                />
+              ) : (
+                <div className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                  {formData.location || "Not set"}
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label className="block text-sm font-medium mb-3 text-gray-300">Phone Number</label>
+            {isEditing ? (
+              <div className="flex gap-2">
+                <select
+                  value={formData.phone_country_code}
+                  onChange={(e) => handleInputChange("phone_country_code", e.target.value)}
+                  className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all min-w-[120px]"
+                >
+                  {phonePrefixes.map((prefix: { code: string; country: string }) => (
+                    <option key={prefix.code} value={prefix.code}>
+                      {prefix.country} ({prefix.code})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={(e) => handleInputChange("phone_number", e.target.value)}
+                  className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Enter phone number"
+                />
+              </div>
+            ) : (
+              <div className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300">
+                {formData.phone_country_code && formData.phone_number 
+                  ? `${formData.phone_country_code} ${formData.phone_number}` 
+                  : "Not set"}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Account Actions */}
+        <div className="mt-12">
+          <h3 className="text-xl font-bold mb-6">Account Actions</h3>
+          <div className="flex flex-col gap-4">
+            <button 
+              onClick={() => router.push('/change-password')}
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-medium text-center"
+            >
+              Change Password
+            </button>
+            <button 
+              onClick={async () => {
+                if (confirm("Are you sure you want to sign out?")) {
+                  await supabase.auth.signOut();
+                  router.push("/signIn");
+                }
+              }}
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-medium text-center"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
@@ -446,63 +535,30 @@ const Page: React.FC = () => {
   );
 };
 
-// Icon Components (Copy from reference code)
+// Icon Components
 const ArrowLeftIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
     <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
-const EditIcon: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const SaveIcon: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <polyline points="7,3 7,8 15,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const CameraIcon: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+const CameraIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
   </svg>
 );
 
-const LockIcon: React.FC<{ className?: string }> = ({ className }) => (
+const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2"/>
+    <polyline points="20,6 9,17 4,12" stroke="currentColor" strokeWidth="2"/>
   </svg>
 );
 
-const LocationIcon: React.FC<{ className?: string }> = ({ className }) => (
+const XIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="2"/>
-    <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
-  </svg>
-);
-
-const KeyIcon: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <circle cx="7" cy="17" r="4" stroke="currentColor" strokeWidth="2"/>
-    <path d="m21 3-6 6-4-4-6 6" stroke="currentColor" strokeWidth="2"/>
-    <path d="m15 3 6 6" stroke="currentColor" strokeWidth="2"/>
-    <path d="m9 11 4 4" stroke="currentColor" strokeWidth="2"/>
-  </svg>
-);
-
-const SignOutIcon: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2"/>
+    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2"/>
   </svg>
 );
 
