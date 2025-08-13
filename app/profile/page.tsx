@@ -27,7 +27,7 @@ const Page: React.FC = () => {
     location: "",
     avatar_url: "",
     phone_number: "",
-    phone_country_code: "+1",
+    phone_country_code: "+91",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [usernameError, setUsernameError] = useState('');
